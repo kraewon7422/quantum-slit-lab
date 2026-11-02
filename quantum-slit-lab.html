@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quantum Slit Lab</title>
+<meta name="description" content="Fire quantum particles one at a time at a slit and watch an interference pattern build up, then compare the simulation with theory.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080b12;--panel:#0f1420;--panel2:#141b2a;--line:#232c3f;--fg:#e7ecf5;--muted:#8b97ad;--dim:#5d687d;
+  --acc:#7fd7ff;--sim:#f2f5fa;--fr:#ffb454;--hu:#6fe0c0;--dot:#bfe6ff;--warn:#ff8a7a;--ok:#8ee59b;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg)}
+body{font-family:'Noto Sans KR',system-ui,-apple-system,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:14px;line-height:1.5;word-break:keep-all;overflow-wrap:break-word}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+
+/* ---------- top bar */
+header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 18px;border-bottom:1px solid var(--line);background:#0a0e17}
+.brand{display:flex;flex-direction:column;min-width:0;margin-right:auto}
+.brand b{font-size:17px;letter-spacing:.14em;font-weight:700}
+.brand span{font-size:12px;color:var(--muted)}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.btn{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:7px 13px;white-space:nowrap;transition:background .15s,border-color .15s}
+.btn:hover{border-color:#3a4763}
+.btn.primary{background:#14324a;border-color:#2c6d96;color:#d8f2ff;font-weight:700}
+.btn.primary:hover{background:#18405e}
+.btn[disabled]{opacity:.45;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:7px 11px;white-space:nowrap}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:#1b2a40;color:var(--acc);font-weight:700}
+.lbl{font-size:12px;color:var(--muted);white-space:nowrap}
+input[type=range]{accent-color:var(--acc);vertical-align:middle}
+
+/* ---------- layout */
+main{display:grid;grid-template-columns:268px minmax(0,1fr) 292px;gap:14px;padding:14px 18px;max-width:1760px;margin:0 auto;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.panel h2{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:700;margin:0 0 10px;text-transform:uppercase}
+.panel+.panel{margin-top:12px}
+.col{min-width:0}
+
+/* setup cards */
+.setups{display:grid;gap:6px}
+.setup{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:8px 10px}
+.setup svg{flex:none}
+.setup b{display:block;font-size:14px;font-weight:500}
+.setup small{display:block;color:var(--muted);font-size:11.5px}
+.setup[aria-pressed="true"]{border-color:#2c6d96;background:#122236}
+.setup[aria-pressed="true"] b{color:var(--acc)}
+
+.ctl{margin:10px 0 0}
+.ctl .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctl label{font-size:13px}
+.ctl output{font-family:var(--mono);font-size:12.5px;color:var(--acc)}
+.ctl input{width:100%;margin:4px 0;display:block}
+.ctl .help{font-size:11.5px;color:var(--dim)}
+.switch{display:flex;align-items:center;gap:10px;margin-top:4px}
+.switch input{width:40px;height:22px;appearance:none;-webkit-appearance:none;background:#273147;border-radius:11px;position:relative;cursor:pointer;flex:none;transition:background .15s}
+.switch input::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#cfd7e6;top:3px;left:3px;transition:left .15s}
+.switch input:checked{background:#a8485a}
+.switch input:checked::after{left:21px}
+.switch input:disabled{opacity:.4;cursor:default}
+.formula{font-family:var(--mono);font-size:12.5px;background:#0b101a;border:1px solid var(--line);border-radius:8px;padding:9px 10px;line-height:1.7;overflow-x:auto}
+.formula i{color:var(--fr);font-style:normal}
+.formula .fn{font-family:'Noto Sans KR',system-ui,sans-serif;color:var(--muted);font-size:12px;display:block;margin-top:2px}
+.note{font-size:12px;color:var(--muted);margin:8px 0 0}
+
+/* stage */
+.stage{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#06090f;max-width:calc((100vh - 190px) * 4 / 3 + 210px);margin:0 auto}
+.wave{position:relative;flex:1 1 auto;min-width:0;aspect-ratio:4/3}
+.wave canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#cpuCanvas{image-rendering:auto}
+.det{flex:0 0 210px;position:relative;border-left:1px solid var(--line);background:#070a10}
+.det canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.status{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);padding:8px 4px 0;justify-content:center}
+.status span{white-space:nowrap}
+.status b{color:var(--fg);font-weight:600;font-family:var(--mono)}
+.guide{max-width:760px;margin:10px auto 0;font-size:12.5px;color:var(--muted);display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px 18px}
+.guide div{display:flex;gap:8px;align-items:flex-start}
+.guide i{flex:none;width:12px;height:12px;border-radius:3px;margin-top:4px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;padding:8px 0 0;font-size:12px;color:var(--muted)}
+.legend button{border:0;background:none;padding:2px 4px;display:inline-flex;align-items:center;gap:6px;color:var(--muted);white-space:nowrap}
+.legend button[aria-pressed="false"]{opacity:.38}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:2px}
+.msg{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:rgba(10,15,25,.86);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;pointer-events:none;opacity:0;transition:opacity .25s;width:max-content;max-width:calc(100% - 20px);text-align:center;line-height:1.4}
+.msg.on{opacity:1}
+
+/* metrics */
+.metric{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 0;border-top:1px solid var(--line)}
+.metric:first-of-type{border-top:0;padding-top:0}
+.metric .k{font-size:13px}
+.metric .k small{display:block;color:var(--dim);font-size:11.5px}
+.metric .v{font-family:var(--mono);font-size:13.5px;text-align:right;white-space:nowrap}
+.metric .v small{display:block;font-size:11.5px;color:var(--muted)}
+.good{color:var(--ok)}.bad{color:var(--warn)}
+.big{font-size:20px;font-weight:600}
+.particles{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.particles .seg button{padding:6px 9px}
+
+/* learn overlay */
+#learn,#testOut{position:fixed;inset:0;background:rgba(4,6,10,.78);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
+#learn.on,#testOut.on{display:flex}
+.card{background:var(--panel);border:1px solid #2b3650;border-radius:14px;max-width:640px;width:100%;padding:22px 24px;max-height:90vh;overflow:auto}
+.card h3{margin:0 0 4px;font-size:19px}
+.card .step{font-size:12px;color:var(--acc);letter-spacing:.1em}
+.card p{color:#c9d2e2;margin:10px 0}
+.card .eq{font-family:var(--mono);background:#0b101a;border-radius:8px;padding:8px 10px;color:var(--fr);overflow-x:auto}
+.card .nav{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:8px}
+.dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:50%;background:#2b3650}.dots i.on{background:var(--acc)}
+#testOut .card{max-width:820px;font-size:13px}
+#testOut table{border-collapse:collapse;width:100%}
+#testOut td{border-top:1px solid var(--line);padding:5px 6px;vertical-align:top}
+#testOut td:nth-child(3){font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+footer{color:var(--dim);font-size:12px;text-align:center;padding:4px 18px 22px}
+footer a{color:var(--muted)}
+
+/* ---------- responsive */
+@media (max-width:1280px){
+  main{grid-template-columns:260px minmax(0,1fr)}
+  .metrics{grid-column:2}
+  .stage{max-width:none}
+}
+@media (max-width:860px){
+  header{padding:10px 12px}
+  main{grid-template-columns:minmax(0,1fr);padding:10px 10px}
+  .metrics{grid-column:auto}
+  .stagecol{position:sticky;top:0;z-index:5;background:var(--bg);padding-bottom:6px;margin:0 -10px;padding-left:10px;padding-right:10px}
+  .det{flex-basis:30%}
+  .order1{order:1}.order2{order:2}.order3{order:3}
+  main{display:flex;flex-direction:column}
+  main>.col{width:100%}
+  .status{font-size:11px;gap:2px 10px}
+  header{gap:8px}
+  .brand b{font-size:15px}
+  .bar{gap:6px}
+  .btn{padding:6px 10px;font-size:13px}
+  .seg button{padding:6px 9px;font-size:13px}
+  .spdl{display:none}
+  #speed{width:70px!important}
+  .msg{font-size:12px;top:8px}
+}
+@media (max-width:860px) and (max-height:760px){ .stagecol{position:static} }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><b>QUANTUM SLIT LAB</b><span data-i18n="tagline">입자를 하나씩 쏘면, 점이 모여 간섭무늬가 된다</span></div>
+  <div class="bar">
+    <button class="btn primary" id="fireBtn" data-i18n="fire">▶ 발사</button>
+    <button class="btn" id="pauseBtn" data-i18n="pause">❚❚ 일시정지</button>
+    <button class="btn" id="resetBtn" data-i18n="reset">⟲ 초기화</button>
+    <span class="lbl spdl" data-i18n="speed">속도</span><input type="range" id="speed" min="5" max="120" value="40" style="width:96px" aria-label="speed">
+  </div>
+  <div class="bar">
+    <div class="seg" id="viewSeg" role="group" aria-label="view">
+      <button data-view="phase" aria-pressed="true" data-i18n="vPhase">위상색</button>
+      <button data-view="prob" aria-pressed="false" data-i18n="vProb">확률</button>
+      <button data-view="real" aria-pressed="false" data-i18n="vReal">실수부</button>
+    </div>
+    <button class="btn" id="learnBtn" data-i18n="learn">? 왜 무늬가 생길까</button>
+    <div class="seg" id="langSeg" role="group" aria-label="language">
+      <button data-lang="ko" aria-pressed="true">KO</button><button data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- left: experiment -->
+  <div class="col order3">
+    <section class="panel">
+      <h2 data-i18n="hSetup">실험</h2>
+      <div class="setups" id="setups">
+        <button class="setup" data-setup="single" aria-pressed="false">
+          <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v10M14 18v10" stroke="#cfd7e6" stroke-width="3"/></svg>
+          <span><b data-i18n="sSingle">단일 슬릿</b><small data-i18n="sSingleD">회절: 구멍 하나로도 퍼진다</small></span></button>
+        <button class="setup" data-setup="double" aria-pressed="true">
+          <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v6M14 12v6M14 22v6" stroke="#cfd7e6" stroke-width="3"/></svg>
+          <span><b data-i18n="sDouble">이중 슬릿</b><small data-i18n="sDoubleD">간섭: 두 길이 겹친다</small></span></button>
+        <button class="setup" data-setup="multi" aria-pressed="false">
+          <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v3M14 8v3M14 14v3M14 20v3M14 26v2" stroke="#cfd7e6" stroke-width="3"/></svg>
+          <span><b data-i18n="sMulti">다중 슬릿 (격자)</b><small data-i18n="sMultiD">N개의 길: 밝은 줄이 날카로워진다</small></span></button>
+      </div>
+      <div class="ctl"><div class="top"><label for="lam" data-i18n="cLam">파장 λ</label><output id="lamOut"></output></div>
+        <input type="range" id="lam" min="6" max="16" step="0.5"><div class="help" data-i18n="cLamH">입자의 운동량 p = h/λ — 파장이 길수록 무늬가 넓다</div></div>
+      <div class="ctl" id="ctlD"><div class="top"><label for="d" data-i18n="cD">슬릿 간격 d</label><output id="dOut"></output></div>
+        <input type="range" id="d" min="16" max="80" step="2"></div>
+      <div class="ctl"><div class="top"><label for="a" data-i18n="cA">슬릿 폭 a</label><output id="aOut"></output></div>
+        <input type="range" id="a" min="4" max="32" step="1"></div>
+      <div class="ctl" id="ctlN"><div class="top"><label for="n" data-i18n="cN">슬릿 수 N</label><output id="nOut"></output></div>
+        <input type="range" id="n" min="3" max="5" step="1"></div>
+      <div class="ctl"><div class="top"><label for="sig" data-i18n="cSig">파속 폭 σ</label><output id="sigOut"></output></div>
+        <input type="range" id="sig" min="14" max="30" step="1"><div class="help" data-i18n="cSigH">입자가 처음 있을 법한 범위 (가우시안)</div></div>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="hObs">관측</h2>
+      <div class="switch"><input type="checkbox" id="obs" role="switch"><label for="obs" data-i18n="obsLabel">어느 슬릿을 지났는지 측정하기</label></div>
+      <p class="note" id="obsNote" data-i18n="obsNote">켜면 매번 입자가 지난 슬릿 하나가 기록됩니다. 경로를 알게 되는 순간 간섭이 사라지는지 확인해 보세요.</p>
+    </section>
+
+    <section class="panel">
+      <h2 data-i18n="hTheory">이론식 (프라운호퍼)</h2>
+      <div class="formula" id="formula"></div>
+      <p class="note" id="fresnelNote"></p>
+    </section>
+  </div>
+
+  <!-- centre: stage -->
+  <div class="col stagecol order1">
+    <div class="stage" id="stage">
+      <div class="wave" id="wave">
+        <canvas id="glCanvas" aria-label="wave function"></canvas>
+        <canvas id="cpuCanvas" style="display:none"></canvas>
+        <canvas id="ovCanvas"></canvas>
+        <div class="msg" id="msg"></div>
+      </div>
+      <div class="det" id="det"><canvas id="detCanvas" aria-label="detector screen"></canvas></div>
+    </div>
+    <div class="legend" id="legend">
+      <button data-layer="sim" aria-pressed="true"><i style="background:var(--sim)"></i><span data-i18n="lgSim">시뮬레이션 (파동)</span></button>
+      <button data-layer="hist" aria-pressed="true"><i style="background:var(--dot)"></i><span data-i18n="lgHist">점 히스토그램</span></button>
+      <button data-layer="fr" aria-pressed="true"><i style="background:var(--fr)"></i><span data-i18n="lgFr">프라운호퍼</span></button>
+      <button data-layer="hu" aria-pressed="true"><i style="background:var(--hu)"></i><span data-i18n="lgHu">하위헌스 (근거리)</span></button>
+    </div>
+    <div class="status" id="status"></div>
+    <div class="guide" id="guide"></div>
+  </div>
+
+  <!-- right: measurements -->
+  <div class="col metrics order2">
+    <section class="panel">
+      <h2 data-i18n="hParticles">입자 모드</h2>
+      <div class="particles">
+        <button class="btn primary" id="partBtn" data-i18n="partStart">● 입자 쏘기</button>
+        <div class="seg" id="rateSeg" role="group" aria-label="rate">
+          <button data-rate="20" aria-pressed="true">20/s</button><button data-rate="200" aria-pressed="false">200/s</button><button data-rate="2000" aria-pressed="false">2000/s</button>
+        </div>
+      </div>
+      <div class="metric" style="margin-top:10px"><div class="k"><span data-i18n="mDots">검출된 입자</span><small data-i18n="mDotsS">점 하나 = 입자 하나</small></div><div class="v"><span class="big" id="dotCount">0</span></div></div>
+      <div class="metric"><div class="k"><span data-i18n="mTV">점 분포 ↔ 파동 분포 차이</span><small data-i18n="mTVS">총변동거리, 점이 많을수록 0에 가까워짐</small></div><div class="v" id="tvVal">—</div></div>
+      <p class="note" data-i18n="partNote">각 입자는 한 점에만 나타납니다. 위치는 파동이 스크린에 남긴 확률 흐름에 비례해 무작위로 정해집니다 (보른 규칙).</p>
+    </section>
+    <section class="panel">
+      <h2 data-i18n="hCompare">시뮬레이션 vs 이론</h2>
+      <div id="metrics"></div>
+    </section>
+  </div>
+</main>
+<footer><span data-i18n="foot">2차원 시간의존 슈뢰딩거 방정식 · ħ = m = 1, 격자 간격 1 · Visscher 엇갈림 적분 · 4차 라플라시안</span> · <a href="?test=1" id="testLink" data-i18n="runTests">단위 테스트 (?test=1)</a></footer>
+
+<div id="learn" role="dialog" aria-modal="true" aria-labelledby="learnTitle"><div class="card">
+  <div class="step" id="learnStep"></div><h3 id="learnTitle"></h3><div id="learnBody"></div>
+  <div class="nav"><button class="btn" id="learnPrev" data-i18n="prev">← 이전</button><div class="dots" id="learnDots"></div>
+    <button class="btn primary" id="learnNext" data-i18n="next">다음 →</button></div>
+</div></div>
+<div id="testOut"><div class="card"><h3 id="testTitle">Tests</h3><table id="testTable"></table><div class="nav"><span></span><button class="btn" id="testClose" data-i18n="close">닫기</button></div></div></div>
+
+<!-- ==================================================================== -->
+<!-- Physics core: no DOM, also runs in node (vm.runInThisContext)          -->
+<!-- ==================================================================== -->
+<script id="core">
+var QSL = (function () {
+  'use strict';
+  var GRID_W = 512, GRID_H = 384, BAND = 32, ALPHA = 0.05, V_CAP = 3, DT_DEFAULT = 0.2;
+  var LAP_EMAX = 16 / 3;          // max eigenvalue of −½∇² with the 4th-order 13-point stencil (2-D)
+  var LAMBDA_MIN = 6;
+
+  // Visscher leapfrog is stable for dt·E_max ≤ 2 (E_max = 16/3 + V_max); keep a 10 % margin
+  function stableDt(vmax, want) { return Math.min(want || DT_DEFAULT, 0.9 * 2 / (LAP_EMAX + Math.max(0, vmax))); }
+
+  // absorbing band: ψ is multiplied by 1 − α s² every step (s = depth into the band, 0..1); outer 2 cells are 0
+  function absorberMask(W, H, band, alpha, on) {
+    var M = new Float32Array(W * H);
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var i = y * W + x;
+      if (x < 2 || y < 2 || x > W - 3 || y > H - 3) { M[i] = 0; continue; }
+      if (!on) { M[i] = 1; continue; }
+      var d = Math.min(x, y, W - 1 - x, H - 1 - y), s = d < band ? (band - d) / band : 0;
+      M[i] = 1 - alpha * s * s;
+    }
+    return M;
+  }
+
+  /* ---------------- CPU reference integrator (Float64) ---------------- */
+  // ψ = R + iI;  ∂R/∂t = H I,  ∂I/∂t = −H R,  H = −½∇² + V.  R lives at integer steps, I at half steps.
+  function CpuSim(W, H) {
+    this.W = W; this.H = H; var n = W * H;
+    this.R = new Float64Array(n); this.I = new Float64Array(n); this.Ip = new Float64Array(n);
+    this.V = new Float64Array(n); this.M = new Float64Array(n); this.tmp = new Float64Array(n);
+    this.t = 0; this.dt = DT_DEFAULT; this.M.set(absorberMask(W, H, BAND, 0, false));
+  }
+  CpuSim.prototype.applyH = function (f, out) {
+    var W = this.W, H = this.H, V = this.V, a0 = -30 / 12, a1 = 16 / 12, a2 = -1 / 12;
+    out.fill(0);
+    for (var y = 2; y < H - 2; y++) for (var x = 2, i = y * W + 2; x < W - 2; x++, i++) {
+      var lap = 2 * a0 * f[i] + a1 * (f[i - 1] + f[i + 1] + f[i - W] + f[i + W]) + a2 * (f[i - 2] + f[i + 2] + f[i - 2 * W] + f[i + 2 * W]);
+      out[i] = -0.5 * lap + V[i] * f[i];
+    }
+  };
+  CpuSim.prototype.setPotential = function (V, M) {
+    for (var i = 0; i < V.length; i++) { this.V[i] = V[i]; if (M) this.M[i] = M[i]; }
+  };
+  // ψ0 = exp(−|r−r0|²/(4σ²)) · exp(i k·r), normalised so Σ|ψ|² = 1
+  CpuSim.prototype.initPacket = function (p) {
+    var W = this.W, H = this.H, k = 2 * Math.PI / p.lambda, ang = p.angle || 0;
+    var kx = k * Math.cos(ang), ky = k * Math.sin(ang), s2 = 4 * p.sigma * p.sigma, sum = 0;
+    for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
+      var i = y * W + x, dx = x + 0.5 - p.x0, dy = y + 0.5 - p.y0;   // cell centre = index + 0.5
+      var amp = this.M[i] > 0 && this.V[i] === 0 ? Math.exp(-(dx * dx + dy * dy) / s2) : 0, ph = kx * x + ky * y;
+      this.R[i] = amp * Math.cos(ph); this.I[i] = amp * Math.sin(ph); sum += amp * amp;
+    }
+    var c = 1 / Math.sqrt(sum), n = W * H, dt = this.dt;
+    for (i = 0; i < n; i++) { this.R[i] *= c; this.I[i] *= c; }
+    this.applyH(this.R, this.tmp);                 // stagger: I(±dt/2) ≈ I(0) ∓ (dt/2)·H R(0)
+    for (i = 0; i < n; i++) { var h = 0.5 * dt * this.tmp[i]; this.Ip[i] = this.I[i] + h; this.I[i] -= h; }
+    var q = 1 / Math.sqrt(this.norm());           // normalise the conserved Visscher density itself to exactly 1
+    for (i = 0; i < n; i++) { this.R[i] *= q; this.I[i] *= q; this.Ip[i] *= q; }
+    this.t = 0;
+  };
+  CpuSim.prototype.step = function (nSteps, flux) {
+    var n = this.R.length, dt = this.dt, R = this.R, I = this.I, Ip = this.Ip, M = this.M, T = this.tmp;
+    for (var s = 0; s < nSteps; s++) {
+      this.applyH(I, T); for (var i = 0; i < n; i++) R[i] = (R[i] + dt * T[i]) * M[i];
+      this.applyH(R, T); for (i = 0; i < n; i++) { Ip[i] = I[i]; I[i] = (I[i] - dt * T[i]) * M[i]; }
+      this.t += dt;
+      if (flux) this.accumFlux(flux);
+    }
+  };
+  // detector = probability current through the screen line: j_x = R ∂xĪ − Ī ∂xR,  Ī = (I + Ip)/2
+  CpuSim.prototype.accumFlux = function (fl) {
+    var W = this.W, R = this.R, I = this.I, Ip = this.Ip, dt = this.dt;
+    for (var y = 2; y < this.H - 2; y++) fl.acc[y] += dt * fluxAt(R, I, Ip, y * W + fl.x);
+  };
+  function fluxAt(R, I, Ip, i) {
+    var b0 = 0.5 * (I[i] + Ip[i]);
+    var dR = (R[i - 2] - 8 * R[i - 1] + 8 * R[i + 1] - R[i + 2]) / 12;
+    var dI = (0.5 * (I[i - 2] + Ip[i - 2]) - 4 * (I[i - 1] + Ip[i - 1]) + 4 * (I[i + 1] + Ip[i + 1]) - 0.5 * (I[i + 2] + Ip[i + 2])) / 12;
+    return R[i] * dI - b0 * dR;
+  }
+  // Visscher's density R(t)² + I(t+dt/2)·I(t−dt/2) is exactly conserved by the scheme
+  CpuSim.prototype.norm = function () {
+    var s = 0, R = this.R, I = this.I, Ip = this.Ip;
+    for (var i = 0; i < R.length; i++) s += R[i] * R[i] + I[i] * Ip[i];
+    return s;
+  };
+  CpuSim.prototype.moments = function () {
+    var W = this.W, R = this.R, I = this.I, Ip = this.Ip, s = 0, sx = 0, sy = 0, sxx = 0, syy = 0;
+    for (var i = 0; i < R.length; i++) {
+      var p = R[i] * R[i] + I[i] * Ip[i], x = i % W, y = (i / W) | 0;
+      s += p; sx += p * x; sy += p * y; sxx += p * x * x; syy += p * y * y;
+    }
+    var mx = sx / s, my = sy / s;
+    return { n: s, x: mx, y: my, sx: Math.sqrt(sxx / s - mx * mx), sy: Math.sqrt(syy / s - my * my) };
+  };
+
+  /* ---------------- experiment geometry ---------------- */
+  var DEFAULTS = {
+    single: { lambda: 8, d: 40, a: 24, n: 4, sigma: 20 },
+    double: { lambda: 8, d: 40, a: 8, n: 4, sigma: 20 },
+    multi: { lambda: 8, d: 20, a: 5, n: 4, sigma: 24 }
+  };
+  var SPAN_MAX = GRID_H - 2 * BAND - 24;           // slits must stay clear of the absorbing band
+  function slitCount(s) { return s.setup === 'single' ? 1 : s.setup === 'double' ? 2 : s.n; }
+  // UI state → full scene parameters (packet placed 3σ clear of the absorber, wall 3.5σ ahead of it)
+  function sceneParams(s, W, H) {
+    W = W || GRID_W; H = H || GRID_H;
+    var N = slitCount(s), sigma = s.sigma, x0 = Math.round(BAND + 6 + 3 * sigma);
+    var d = s.d, a = Math.min(s.a, N > 1 ? d - 4 : s.a);
+    if (N > 1 && (N - 1) * d + a > SPAN_MAX) d = Math.floor((SPAN_MAX - a) / (N - 1));
+    return { N: N, d: d, a: a, lambda: s.lambda, sigma: sigma, x0: x0, y0: H / 2,
+      wallX: Math.round(x0 + 3.5 * sigma), wallT: 4, screenX: W - BAND - 10 };
+  }
+  function screenDistance(p) { return p.screenX + 0.5 - (p.wallX + p.wallT / 2); }
+  function slitList(p, H) {
+    var yc = H / 2, out = [];
+    for (var j = 0; j < p.N; j++) { var c = yc + (j - (p.N - 1) / 2) * p.d; out.push({ c: c, y0: c - p.a / 2, y1: c + p.a / 2 }); }
+    return out;
+  }
+  // wall of height V_CAP (E ≈ 0.3, so it is effectively hard: tunnelling through 4 cells ~1e-8).
+  // opts.only = j → only slit j is open (which-path branch)
+  function buildScene(p, W, H, opts) {
+    opts = opts || {};
+    var V = new Float32Array(W * H), wall = new Uint8Array(W * H), slits = slitList(p, H), only = opts.only == null ? -1 : opts.only;
+    for (var y = 0; y < H; y++) {
+      var yy = y + 0.5, open = false;          // cell-centre test → every slit is exactly a cells wide
+      for (var j = 0; j < slits.length; j++) if ((only < 0 || only === j) && yy > slits[j].y0 && yy < slits[j].y1) open = true;
+      if (open) continue;
+      for (var x = p.wallX; x < p.wallX + p.wallT; x++) { V[y * W + x] = V_CAP; wall[y * W + x] = 1; }
+    }
+    return { V: V, wall: wall, slits: slits };
+  }
+
+  /* ---------------- theory ---------------- */
+  function sinc(x) { return Math.abs(x) < 1e-9 ? 1 : Math.sin(x) / x; }
+  // Fraunhofer: |F(sinθ)|² = sinc²β · [sin Nα / (N sin α)]²,  α = π d sinθ/λ,  β = π a sinθ/λ.
+  // Plotted as flux per unit screen length: × cos²θ (Rayleigh–Sommerfeld obliquity) × cos²θ (flat screen).
+  // incoherent = which-path known → no interference factor.
+  function fraunhofer(y, p, H, incoherent) {
+    var L = screenDistance(p), th = Math.atan((y - H / 2) / L), s = Math.sin(th);
+    var b = Math.PI * p.a * s / p.lambda, al = Math.PI * p.d * s / p.lambda, g = 1;
+    if (p.N > 1 && !incoherent) { var den = p.N * Math.sin(al); g = Math.abs(den) < 1e-9 ? 1 : Math.sin(p.N * al) / den; }
+    var c = Math.cos(th);
+    return sinc(b) * sinc(b) * g * g * c * c * c * c;
+  }
+  // Near-field Huygens–Fresnel (2-D Rayleigh–Sommerfeld): the aperture field is the incident Gaussian beam at
+  // the wall; U(P) = Σ A(y′) cosθ′ e^{ikr}/√r, flux ∝ |U|² cosθ, averaged over the packet's spread Δk = 1/(2σ).
+  // incoherent → Σ_j |U_j|² (each slit separately).
+  function huygens(ys, p, H, incoherent) {
+    var slits = slitList(p, H), xa = p.wallX + p.wallT / 2, L = screenDistance(p), k0 = 2 * Math.PI / p.lambda;
+    var tW = (xa - p.x0) / k0, sw = p.sigma * Math.sqrt(1 + Math.pow(tW / (2 * p.sigma * p.sigma), 2));
+    var groups = [], dy = 0.25;
+    for (var j = 0; j < slits.length; j++) {
+      var g = [];
+      for (var yq = slits[j].y0 + dy / 2; yq < slits[j].y1; yq += dy) g.push([yq, Math.exp(-(yq - p.y0) * (yq - p.y0) / (4 * sw * sw))]);
+      groups.push(g);
+    }
+    var nk = 9, dk = 1 / (2 * p.sigma), out = new Float64Array(ys.length), wsum = 0;
+    for (var q = 0; q < nk; q++) {
+      var z = -2 + 4 * q / (nk - 1), k = k0 + z * dk, w = Math.exp(-z * z / 2) * k;   // arrivals ∝ velocity
+      wsum += w;
+      for (var i = 0; i < ys.length; i++) {
+        var tr = 0, ti = 0, inc = 0;
+        for (j = 0; j < groups.length; j++) {
+          var re = 0, im = 0, pts = groups[j];
+          for (var m = 0; m < pts.length; m++) {
+            var ddy = ys[i] - pts[m][0], r = Math.sqrt(L * L + ddy * ddy), amp = pts[m][1] * (L / r) / Math.sqrt(r);
+            re += amp * Math.cos(k * r); im += amp * Math.sin(k * r);
+          }
+          tr += re; ti += im; inc += re * re + im * im;
+        }
+        var ct = L / Math.sqrt(L * L + Math.pow(ys[i] - H / 2, 2));
+        out[i] += w * (incoherent ? inc : tr * tr + ti * ti) * ct;
+      }
+    }
+    for (i = 0; i < ys.length; i++) out[i] /= wsum;
+    return out;
+  }
+  // both theory curves sampled at cell centres, normalised to their maximum
+  function theoryCurves(p, H, incoherent) {
+    var ys = new Float64Array(H), fr = new Float64Array(H);
+    for (var y = 0; y < H; y++) { ys[y] = y + 0.5; fr[y] = fraunhofer(y + 0.5, p, H, incoherent); }
+    return { fr: normalizeMax(fr), hu: normalizeMax(huygens(ys, p, H, incoherent)) };
+  }
+  // exact far-field geometry: m-th maximum at sinθ = mλ/d → y = L tan θ
+  function fringeTheory(p) {
+    var L = screenDistance(p), r = p.lambda / p.d;
+    return { smallAngle: p.lambda * L / p.d, exact: r < 1 ? L * Math.tan(Math.asin(r)) : NaN };
+  }
+  function firstMinTheory(p) { var L = screenDistance(p), r = p.lambda / p.a; return r < 1 ? L * Math.tan(Math.asin(r)) : NaN; }
+
+  /* ---------------- curve analysis ---------------- */
+  function normalizeMax(a) { var m = 0, i, o = new Float64Array(a.length); for (i = 0; i < a.length; i++) m = Math.max(m, a[i]); for (i = 0; i < a.length; i++) o[i] = m > 0 ? Math.max(0, a[i]) / m : 0; return o; }
+  function normalizeSum(a) { var s = 0, i, o = new Float64Array(a.length); for (i = 0; i < a.length; i++) s += Math.max(0, a[i]); for (i = 0; i < a.length; i++) o[i] = s > 0 ? Math.max(0, a[i]) / s : 0; return o; }
+  // local extrema with parabolic sub-cell refinement; kind 1 = maxima (must exceed floor × max), −1 = minima
+  function extrema(a, lo, hi, kind, floor) {
+    var g = 0, i, out = [];
+    for (i = lo; i < hi; i++) g = Math.max(g, a[i]);
+    for (i = Math.max(lo, 1); i < Math.min(hi, a.length - 1); i++) {
+      var v = kind * a[i];
+      if (v > kind * a[i - 1] && v >= kind * a[i + 1]) {
+        if (kind > 0 && a[i] < (floor || 0) * g) continue;
+        var den = a[i - 1] - 2 * a[i] + a[i + 1], off = den !== 0 ? 0.5 * (a[i - 1] - a[i + 1]) / den : 0;
+        out.push({ y: i + Math.max(-0.5, Math.min(0.5, off)), v: a[i] });
+      }
+    }
+    return out;
+  }
+  function pearson(a, b, lo, hi) {
+    var n = hi - lo, ma = 0, mb = 0, i; for (i = lo; i < hi; i++) { ma += a[i]; mb += b[i]; } ma /= n; mb /= n;
+    var sab = 0, saa = 0, sbb = 0; for (i = lo; i < hi; i++) { var x = a[i] - ma, z = b[i] - mb; sab += x * z; saa += x * x; sbb += z * z; }
+    return saa > 0 && sbb > 0 ? sab / Math.sqrt(saa * sbb) : 0;
+  }
+  // spacing = half the distance between the two maxima that flank the central one (floor picks principal maxima)
+  function fringeSpacing(a, lo, hi, center, floor) {
+    var mx = extrema(a, lo, hi, 1, floor == null ? 0.05 : floor); if (mx.length < 3) return null;
+    var c = 0; for (var i = 1; i < mx.length; i++) if (Math.abs(mx[i].y - center) < Math.abs(mx[c].y - center)) c = i;
+    if (c === 0 || c === mx.length - 1) return null;
+    return { spacing: (mx[c + 1].y - mx[c - 1].y) / 2, peaks: mx, c: c };
+  }
+  // single slit: first minimum on each side of the centre, averaged
+  function firstMinimum(a, lo, hi, center) {
+    var mn = extrema(a, lo, hi, -1), up = null, dn = null;
+    for (var i = 0; i < mn.length; i++) {
+      if (mn[i].y < center && (!up || mn[i].y > up.y)) up = mn[i];
+      if (mn[i].y > center && (!dn || mn[i].y < dn.y)) dn = mn[i];
+    }
+    return up && dn ? (dn.y - up.y) / 2 : null;
+  }
+  // fringe visibility around the centre: (Imax − Imin)/(Imax + Imin); 0 when there is no local minimum
+  function visibility(a, lo, hi, center, halfWin) {
+    var l = Math.max(lo, Math.round(center - halfWin)), h = Math.min(hi, Math.round(center + halfWin));
+    var mx = 0, mn = Infinity, i; for (i = l; i < h; i++) mx = Math.max(mx, a[i]);
+    var mins = extrema(a, l, h, -1); if (!mins.length) return 0;
+    for (i = 0; i < mins.length; i++) mn = Math.min(mn, mins[i].v);
+    return (mx - mn) / (mx + mn);
+  }
+
+  /* ---------------- particle sampling (Born rule) ---------------- */
+  function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  // cumulative distribution over cells; cdf[i] = P(y < i+1)
+  function buildCdf(w) { var c = new Float64Array(w.length), s = 0, i; for (i = 0; i < w.length; i++) { s += Math.max(0, w[i]); c[i] = s; } if (s > 0) for (i = 0; i < w.length; i++) c[i] /= s; return s > 0 ? c : null; }
+  // inverse-CDF sample: continuous y in [0, n), uniform within the chosen cell
+  function sampleCdf(c, u) {
+    var lo = 0, hi = c.length - 1;
+    while (lo < hi) { var mid = (lo + hi) >> 1; if (c[mid] < u) lo = mid + 1; else hi = mid; }
+    var prev = lo > 0 ? c[lo - 1] : 0, span = c[lo] - prev;
+    return lo + (span > 0 ? (u - prev) / span : 0.5);
+  }
+  // total-variation distance between two non-negative histograms
+  function tvDistance(a, b) { var A = normalizeSum(a), B = normalizeSum(b), s = 0; for (var i = 0; i < A.length; i++) s += Math.abs(A[i] - B[i]); return 0.5 * s; }
+
+  /* ---------------- colour (mirrors the GLSL) ---------------- */
+  // cyclic phase palette: arg 0 → red, π/2 → yellow-green, π → cyan, 3π/2 → violet
+  function phaseColor(re, im) {
+    var h = Math.atan2(im, re) / (2 * Math.PI), T = 2 * Math.PI;
+    return [0.5 + 0.5 * Math.cos(T * h), 0.5 + 0.5 * Math.cos(T * (h + 2 / 3)), 0.5 + 0.5 * Math.cos(T * (h + 1 / 3))];
+  }
+
+  /* ---------------- shareable state in the URL hash ---------------- */
+  var LIMITS = { lambda: [LAMBDA_MIN, 16], d: [16, 80], a: [4, 32], n: [3, 5], sigma: [14, 30] };
+  function clamp(v, lo, hi) { return Math.min(hi, Math.max(lo, v)); }
+  function encodeHash(s) {
+    return 'setup=' + s.setup + '&lam=' + s.lambda + '&d=' + s.d + '&a=' + s.a + '&n=' + s.n + '&sig=' + s.sigma +
+      '&obs=' + (s.obs ? 1 : 0) + '&view=' + s.view;
+  }
+  function decodeHash(str) {
+    var q = {}, parts = String(str || '').replace(/^#/, '').split('&');
+    for (var i = 0; i < parts.length; i++) { var kv = parts[i].split('='); if (kv[0]) q[kv[0]] = decodeURIComponent(kv[1] || ''); }
+    if (!DEFAULTS[q.setup]) return null;
+    var s = { setup: q.setup }, D = DEFAULTS[q.setup];
+    function num(key, name) { var v = parseFloat(q[key]); s[name] = isFinite(v) ? clamp(v, LIMITS[name][0], LIMITS[name][1]) : D[name]; }
+    num('lam', 'lambda'); num('d', 'd'); num('a', 'a'); num('n', 'n'); num('sig', 'sigma');
+    s.n = Math.round(s.n); s.lambda = Math.round(s.lambda * 2) / 2;
+    s.obs = q.obs === '1'; s.view = ['phase', 'prob', 'real'].indexOf(q.view) >= 0 ? q.view : 'phase';
+    return s;
+  }
+
+  return {
+    GRID_W: GRID_W, GRID_H: GRID_H, BAND: BAND, ALPHA: ALPHA, V_CAP: V_CAP, DT_DEFAULT: DT_DEFAULT, LAP_EMAX: LAP_EMAX,
+    LAMBDA_MIN: LAMBDA_MIN, DEFAULTS: DEFAULTS, LIMITS: LIMITS, SPAN_MAX: SPAN_MAX,
+    stableDt: stableDt, absorberMask: absorberMask, CpuSim: CpuSim, fluxAt: fluxAt,
+    slitCount: slitCount, sceneParams: sceneParams, screenDistance: screenDistance, slitList: slitList, buildScene: buildScene,
+    sinc: sinc, fraunhofer: fraunhofer, huygens: huygens, theoryCurves: theoryCurves, fringeTheory: fringeTheory, firstMinTheory: firstMinTheory,
+    normalizeMax: normalizeMax, normalizeSum: normalizeSum, extrema: extrema, pearson: pearson,
+    fringeSpacing: fringeSpacing, firstMinimum: firstMinimum, visibility: visibility,
+    mulberry32: mulberry32, buildCdf: buildCdf, sampleCdf: sampleCdf, tvDistance: tvDistance,
+    phaseColor: phaseColor, encodeHash: encodeHash, decodeHash: decodeHash
+  };
+})();
+if (typeof module !== 'undefined') module.exports = QSL;
+</script>
+
+<!-- ==================================================================== -->
+<!-- Engines: WebGL2 (main) and CPU fallback share one interface             -->
+<!-- ==================================================================== -->
+<script>
+'use strict';
+var VS = '#version 300 es\nconst vec2 P[3]=vec2[3](vec2(-1.,-1.),vec2(3.,-1.),vec2(-1.,3.));\nout vec2 uv;\nvoid main(){vec2 p=P[gl_VertexID];uv=p*.5+.5;gl_Position=vec4(p,0.,1.);}';
+
+// one leapfrog half-step. phase 0: R += dt·H I ;  phase 1: I −= dt·H R (old I kept in .z for the density)
+var FS_STEP = '#version 300 es\nprecision highp float;precision highp int;\n' +
+  'uniform highp sampler2D uS;uniform highp sampler2D uP;uniform float uDt;uniform int uPhase;uniform ivec2 uSize;out vec4 o;\n' +
+  'float g(ivec2 c){vec4 v=texelFetch(uS,c,0);return uPhase==0?v.y:v.x;}\n' +
+  'void main(){ivec2 c=ivec2(gl_FragCoord.xy);\n' +
+  ' if(c.x<2||c.y<2||c.x>=uSize.x-2||c.y>=uSize.y-2){o=vec4(0.);return;}\n' +
+  ' vec4 s=texelFetch(uS,c,0);vec4 pt=texelFetch(uP,c,0);float f=uPhase==0?s.y:s.x;\n' +
+  ' float lap=2.*(-30./12.)*f+(16./12.)*(g(c+ivec2(1,0))+g(c-ivec2(1,0))+g(c+ivec2(0,1))+g(c-ivec2(0,1)))\n' +
+  '          +(-1./12.)*(g(c+ivec2(2,0))+g(c-ivec2(2,0))+g(c+ivec2(0,2))+g(c-ivec2(0,2)));\n' +
+  ' float Hf=-.5*lap+pt.x*f;\n' +
+  ' if(uPhase==0) o=vec4((s.x+uDt*Hf)*pt.y,s.y,s.z,0.); else o=vec4(s.x,(s.y-uDt*Hf)*pt.y,s.y,0.);}';
+
+// detector: acc(y) += dt · j_x(xs, y)
+var FS_FLUX = '#version 300 es\nprecision highp float;precision highp int;\n' +
+  'uniform highp sampler2D uS;uniform highp sampler2D uA;uniform float uDt;uniform int uX;uniform ivec2 uSize;out vec4 o;\n' +
+  'vec2 ri(int x,int y){vec4 v=texelFetch(uS,ivec2(x,y),0);return vec2(v.x,.5*(v.y+v.z));}\n' +
+  'void main(){int y=int(gl_FragCoord.y);vec4 a=texelFetch(uA,ivec2(0,y),0);\n' +
+  ' if(y<2||y>=uSize.y-2){o=a;return;}\n' +
+  ' vec2 m2=ri(uX-2,y),m1=ri(uX-1,y),c=ri(uX,y),p1=ri(uX+1,y),p2=ri(uX+2,y);\n' +
+  ' vec2 d=(m2-8.*m1+8.*p1-p2)/12.;\n' +
+  ' o=a+vec4(uDt*(c.x*d.y-c.y*d.x),0.,0.,0.);}';
+
+// column sums of Visscher density (for total probability)
+var FS_COLSUM = '#version 300 es\nprecision highp float;precision highp int;\n' +
+  'uniform highp sampler2D uS;uniform ivec2 uSize;out vec4 o;\n' +
+  'void main(){int x=int(gl_FragCoord.x);float s=0.;for(int y=0;y<4096;y++){if(y>=uSize.y)break;vec4 v=texelFetch(uS,ivec2(x,y),0);s+=v.x*v.x+v.y*v.z;}o=vec4(s,0.,0.,0.);}';
+
+// display: manual bilinear filter, three views, walls + absorber hatch
+var FS_SHOW = '#version 300 es\nprecision highp float;precision highp int;\n' +
+  'uniform highp sampler2D uS;uniform highp sampler2D uP;uniform ivec2 uSize;uniform int uMode;uniform float uGain;uniform float uRef;in vec2 uv;out vec4 o;\n' +
+  'const vec3 BG=vec3(.031,.043,.07);\n' +
+  'vec4 f(ivec2 c){c=clamp(c,ivec2(0),uSize-1);return texelFetch(uS,c,0);}\n' +
+  'vec3 pal(float h){return .5+.5*cos(6.2831853*(h+vec3(0.,2./3.,1./3.)));}\n' +
+  'vec3 heat(float v){v=clamp(v,0.,1.);vec3 a=BG,b=vec3(.27,.10,.45),c=vec3(.80,.22,.35),d=vec3(.99,.62,.25),e=vec3(1.,.97,.78);\n' +
+  ' if(v<.25)return mix(a,b,v*4.);if(v<.5)return mix(b,c,(v-.25)*4.);if(v<.75)return mix(c,d,(v-.5)*4.);return mix(d,e,(v-.75)*4.);}\n' +
+  'void main(){vec2 g=vec2(uv.x*float(uSize.x),(1.-uv.y)*float(uSize.y))-.5;ivec2 c=ivec2(floor(g));vec2 t=g-floor(g);\n' +
+  ' vec4 s=mix(mix(f(c),f(c+ivec2(1,0)),t.x),mix(f(c+ivec2(0,1)),f(c+ivec2(1,1)),t.x),t.y);\n' +
+  ' float re=s.x,im=.5*(s.y+s.z),rho=re*re+im*im;vec3 col;\n' +
+  ' if(uMode==0){float b=clamp(pow(rho/uRef,.25)*uGain,0.,1.);col=mix(BG,pal(atan(im,re)/6.2831853),b);}\n' +
+  ' else if(uMode==1){col=heat(sqrt(rho/uRef)*uGain*.9);}\n' +
+  ' else {float v=clamp(re/sqrt(uRef)*uGain*.8,-1.,1.);col=v>0.?mix(BG,vec3(1.,.42,.36),v):mix(BG,vec3(.36,.62,1.),-v);}\n' +
+  ' ivec2 n=clamp(ivec2(floor(g+.5)),ivec2(0),uSize-1);vec4 pt=texelFetch(uP,n,0);\n' +
+  ' if(pt.y<.9999&&pt.y>0.){float h=mod(float(n.x+n.y),9.);if(h<1.)col+=vec3(.035);}\n' +
+  ' if(pt.z>.5)col=mix(col,vec3(.80,.85,.95),.88);\n' +
+  ' o=vec4(col,1.);}';
+
+function GpuEngine(gl, W, H) {
+  this.gl = gl; this.W = W; this.H = H; this.dt = QSL.DT_DEFAULT; this.t = 0; this.kind = 'GPU';
+  var self = this;
+  function sh(type, src) { var s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; }
+  function prog(fs) {
+    var p = gl.createProgram(); gl.attachShader(p, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    var u = {}, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+    for (var i = 0; i < n; i++) { var nm = gl.getActiveUniform(p, i).name; u[nm] = gl.getUniformLocation(p, nm); }
+    return { p: p, u: u };
+  }
+  function tex(w, h, data) {
+    var t = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, w, h, 0, gl.RGBA, gl.FLOAT, data || null);
+    var f = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, f); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, t, 0);
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) throw new Error('float framebuffer incomplete');
+    return { t: t, f: f, w: w, h: h };
+  }
+  this.pStep = prog(FS_STEP); this.pFlux = prog(FS_FLUX); this.pSum = prog(FS_COLSUM); this.pShow = prog(FS_SHOW);
+  this.S = [tex(W, H), tex(W, H)]; this.P = tex(W, H); this.A = [tex(1, H), tex(1, H)]; this.C = tex(W, 1);
+  this.cur = 0; this.acur = 0; this.vao = gl.createVertexArray();
+  this.cpu = new QSL.CpuSim(W, H);        // builds the initial state (identical to the CPU path)
+  this.bufA = new Float32Array(4 * H); this.bufC = new Float32Array(4 * W);
+}
+GpuEngine.prototype.pass = function (pr, target, w, h) {
+  var gl = this.gl; gl.useProgram(pr.p); gl.bindFramebuffer(gl.FRAMEBUFFER, target ? target.f : null);
+  gl.viewport(0, 0, w, h); gl.bindVertexArray(this.vao);
+};
+GpuEngine.prototype.bindTex = function (unit, t, loc) { var gl = this.gl; gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, t.t); gl.uniform1i(loc, unit); };
+// scene: {V, M, wall, packet:{x0,y0,sigma,lambda,angle}, fluxX, dt}
+GpuEngine.prototype.reset = function (sc) {
+  var gl = this.gl, W = this.W, H = this.H, n = W * H, cpu = this.cpu, i;
+  this.dt = cpu.dt = sc.dt; cpu.setPotential(sc.V, sc.M); cpu.initPacket(sc.packet);
+  var st = new Float32Array(4 * n), pt = new Float32Array(4 * n);
+  for (i = 0; i < n; i++) { st[4 * i] = cpu.R[i]; st[4 * i + 1] = cpu.I[i]; st[4 * i + 2] = cpu.Ip[i]; pt[4 * i] = sc.V[i]; pt[4 * i + 1] = sc.M[i]; pt[4 * i + 2] = sc.wall ? sc.wall[i] : 0; }
+  gl.bindTexture(gl.TEXTURE_2D, this.S[0].t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, W, H, 0, gl.RGBA, gl.FLOAT, st);
+  gl.bindTexture(gl.TEXTURE_2D, this.P.t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, W, H, 0, gl.RGBA, gl.FLOAT, pt);
+  var z = new Float32Array(4 * H);
+  for (i = 0; i < 2; i++) { gl.bindTexture(gl.TEXTURE_2D, this.A[i].t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, 1, H, 0, gl.RGBA, gl.FLOAT, z); }
+  this.cur = 0; this.acur = 0; this.t = 0; this.fluxX = sc.fluxX;
+  this.ref = 1 / (2 * Math.PI * sc.packet.sigma * sc.packet.sigma);
+};
+GpuEngine.prototype.step = function (nSteps) {
+  var gl = this.gl, W = this.W, H = this.H, ps = this.pStep, pf = this.pFlux;
+  for (var s = 0; s < nSteps; s++) {
+    for (var ph = 0; ph < 2; ph++) {
+      this.pass(ps, this.S[1 - this.cur], W, H);
+      this.bindTex(0, this.S[this.cur], ps.u.uS); this.bindTex(1, this.P, ps.u.uP);
+      gl.uniform1f(ps.u.uDt, this.dt); gl.uniform1i(ps.u.uPhase, ph); gl.uniform2i(ps.u.uSize, W, H);
+      gl.drawArrays(gl.TRIANGLES, 0, 3); this.cur = 1 - this.cur;
+    }
+    this.pass(pf, this.A[1 - this.acur], 1, H);
+    this.bindTex(0, this.S[this.cur], pf.u.uS); this.bindTex(1, this.A[this.acur], pf.u.uA);
+    gl.uniform1f(pf.u.uDt, this.dt); gl.uniform1i(pf.u.uX, this.fluxX); gl.uniform2i(pf.u.uSize, W, H);
+    gl.drawArrays(gl.TRIANGLES, 0, 3); this.acur = 1 - this.acur;
+    this.t += this.dt;
+  }
+};
+GpuEngine.prototype.readFlux = function (out) {
+  var gl = this.gl; gl.bindFramebuffer(gl.FRAMEBUFFER, this.A[this.acur].f);
+  gl.readPixels(0, 0, 1, this.H, gl.RGBA, gl.FLOAT, this.bufA);
+  out = out || new Float64Array(this.H); for (var y = 0; y < this.H; y++) out[y] = this.bufA[4 * y]; return out;
+};
+GpuEngine.prototype.norm = function () {
+  var gl = this.gl, pr = this.pSum; this.pass(pr, this.C, this.W, 1);
+  this.bindTex(0, this.S[this.cur], pr.u.uS); gl.uniform2i(pr.u.uSize, this.W, this.H); gl.drawArrays(gl.TRIANGLES, 0, 3);
+  gl.readPixels(0, 0, this.W, 1, gl.RGBA, gl.FLOAT, this.bufC);
+  var s = 0; for (var x = 0; x < this.W; x++) s += this.bufC[4 * x]; return s;
+};
+GpuEngine.prototype.readState = function () {
+  var gl = this.gl, b = new Float32Array(4 * this.W * this.H); gl.bindFramebuffer(gl.FRAMEBUFFER, this.S[this.cur].f);
+  gl.readPixels(0, 0, this.W, this.H, gl.RGBA, gl.FLOAT, b); return b;
+};
+GpuEngine.prototype.draw = function (mode, gain, w, h) {
+  var gl = this.gl, pr = this.pShow; this.pass(pr, null, w, h);
+  this.bindTex(0, this.S[this.cur], pr.u.uS); this.bindTex(1, this.P, pr.u.uP);
+  gl.uniform2i(pr.u.uSize, this.W, this.H); gl.uniform1i(pr.u.uMode, mode); gl.uniform1f(pr.u.uGain, gain); gl.uniform1f(pr.u.uRef, this.ref);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+};
+
+// CPU fallback (no WebGL2 float render targets): same physics, drawn with ImageData
+function CpuEngine(canvas, W, H) {
+  this.W = W; this.H = H; this.sim = new QSL.CpuSim(W, H); this.kind = 'CPU'; this.t = 0; this.dt = QSL.DT_DEFAULT;
+  this.canvas = canvas; canvas.width = W; canvas.height = H; this.ctx = canvas.getContext('2d'); this.img = this.ctx.createImageData(W, H);
+}
+CpuEngine.prototype.reset = function (sc) {
+  this.sim.dt = this.dt = sc.dt; this.sim.setPotential(sc.V, sc.M); this.sim.initPacket(sc.packet);
+  this.wall = sc.wall; this.M = sc.M; this.fl = { x: sc.fluxX, acc: new Float64Array(this.H) }; this.t = 0;
+  this.ref = 1 / (2 * Math.PI * sc.packet.sigma * sc.packet.sigma);
+};
+CpuEngine.prototype.step = function (n) { this.sim.step(n, this.fl); this.t = this.sim.t; };
+CpuEngine.prototype.readFlux = function (out) { out = out || new Float64Array(this.H); out.set(this.fl.acc); return out; };
+CpuEngine.prototype.norm = function () { return this.sim.norm(); };
+CpuEngine.prototype.draw = function (mode, gain) {
+  var d = this.img.data, R = this.sim.R, I = this.sim.I, Ip = this.sim.Ip, ref = this.ref, BG = [8, 11, 18];
+  for (var i = 0; i < R.length; i++) {
+    var re = R[i], im = 0.5 * (I[i] + Ip[i]), rho = re * re + im * im, r, g, b;
+    if (mode === 0) { var c = QSL.phaseColor(re, im), k = Math.min(1, Math.pow(rho / ref, 0.25) * gain); r = BG[0] + (c[0] * 255 - BG[0]) * k; g = BG[1] + (c[1] * 255 - BG[1]) * k; b = BG[2] + (c[2] * 255 - BG[2]) * k; }
+    else if (mode === 1) { var v = Math.min(1, Math.sqrt(rho / ref) * gain * 0.9); r = BG[0] + 245 * v; g = BG[1] + 150 * v * v; b = BG[2] + 90 * v; }
+    else { var q = Math.max(-1, Math.min(1, re / Math.sqrt(ref) * gain * 0.8)); r = q > 0 ? BG[0] + 247 * q : BG[0] + 84 * -q; g = q > 0 ? BG[1] + 96 * q : BG[1] + 147 * -q; b = q > 0 ? BG[2] + 74 * q : BG[2] + 237 * -q; }
+    if (this.M[i] < 0.9999 && this.M[i] > 0 && ((i % this.W) + ((i / this.W) | 0)) % 9 === 0) { r += 9; g += 9; b += 9; }
+    if (this.wall[i]) { r = r * 0.12 + 204 * 0.88; g = g * 0.12 + 217 * 0.88; b = b * 0.12 + 242 * 0.88; }
+    d[4 * i] = r; d[4 * i + 1] = g; d[4 * i + 2] = b; d[4 * i + 3] = 255;
+  }
+  this.ctx.putImageData(this.img, 0, 0);
+};
+
+function makeGl(canvas) {
+  var gl = canvas.getContext('webgl2', { antialias: false, preserveDrawingBuffer: true, premultipliedAlpha: false });
+  if (!gl || !gl.getExtension('EXT_color_buffer_float')) return null;
+  return gl;
+}
+</script>
+
+<!-- ==================================================================== -->
+<!-- App                                                                    -->
+<!-- ==================================================================== -->
+<script>
+'use strict';
+var I18N = {
+  ko: {
+    tagline: '입자를 하나씩 쏘면, 점이 모여 간섭무늬가 된다', fire: '▶ 발사', pause: '❚❚ 일시정지', resume: '▶ 계속', reset: '⟲ 초기화', speed: '속도',
+    vPhase: '위상색', vProb: '확률', vReal: '실수부', learn: '? 왜 무늬가 생길까',
+    hSetup: '실험', sSingle: '단일 슬릿', sSingleD: '회절: 구멍 하나로도 퍼진다', sDouble: '이중 슬릿', sDoubleD: '간섭: 두 길이 겹친다',
+    sMulti: '다중 슬릿 (격자)', sMultiD: 'N개의 길: 밝은 줄이 날카로워진다',
+    cLam: '파장 λ', cLamH: '운동량 p = h/λ · 파장이 길수록 무늬가 넓어진다', cD: '슬릿 간격 d', cA: '슬릿 폭 a', cN: '슬릿 수 N',
+    cSig: '파속 폭 σ', cSigH: '입자가 처음 있을 법한 범위 (가우시안)',
+    hObs: '관측', obsLabel: '어느 슬릿을 지났는지 측정하기',
+    obsNote: '켜면 매번 입자가 지난 슬릿 하나가 기록됩니다. 경로를 알게 되는 순간 간섭이 사라지는지 확인해 보세요.',
+    obsNoteSingle: '슬릿이 하나뿐이라 경로가 이미 정해져 있습니다. 이중·다중 슬릿에서 켜 보세요.',
+    hTheory: '이론식 (프라운호퍼)', lgSim: '시뮬레이션 (파동)', lgHist: '점 히스토그램', lgFr: '프라운호퍼', lgHu: '하위헌스 (근거리)',
+    hParticles: '입자 모드', partStart: '● 입자 쏘기', partStop: '■ 멈추기', partWait: '파동 계산 중…',
+    mDots: '검출된 입자', mDotsS: '점 하나 = 입자 하나', mTV: '점 분포 ↔ 파동 분포 차이', mTVS: '총변동거리, 점이 많을수록 0에 가까워짐',
+    partNote: '각 입자는 한 점에만 나타납니다. 위치는 파동이 스크린에 남긴 확률 흐름에 비례해 무작위로 정해집니다 (보른 규칙).',
+    hCompare: '시뮬레이션 vs 이론',
+    foot: '2차원 시간의존 슈뢰딩거 방정식 · ħ = m = 1, 격자 간격 1 · Visscher 엇갈림 적분 · 4차 라플라시안', runTests: '단위 테스트 (?test=1)',
+    prev: '← 이전', next: '다음 →', done: '닫기', close: '닫기',
+    stInside: '격자 안 확률', stAbsorbed: '흡수됨', stScreen: '스크린 도달', stEngine: '엔진',
+    mSpacing: '무늬 간격 Δy', mSpacingS: '가운데 밝은 줄 ↔ 옆 밝은 줄', mExact: '이론 (L·tan(arcsin λ/d))', mSmall: '소각 근사 λL/d',
+    mFirstMin: '첫 어두운 줄 위치', mFirstMinS: '가운데로부터의 거리', mFirstMinT: '이론 L·tan(arcsin λ/a)', mNoMin: '없음 (λ ≥ a)',
+    mCorrF: '일치도 r · 프라운호퍼', mCorrH: '일치도 r · 하위헌스', mCorrS: '시뮬 곡선과의 상관계수 (1 = 완전 일치)', mCorrHS: '실제 거리·빔 폭까지 넣은 근거리 계산',
+    mVisTh: '이론 V: 관측 없음 / 관측', mVisThS: '같은 슬릿에서 하위헌스 계산', fCos: '× cos⁴θ (경사 인자 × 평면 스크린 보정), L = {L}',
+    guide: [['linear-gradient(90deg,#ff7070,#9be35a,#3fd0d0,#8d6bff)', '파동 ψ: 색 = 위상, 밝기 = 크기'], ['#cfd7e6', '흰 벽 = 슬릿 (높이 V = 3인 장벽)'], ['#7fd7ff', '점선 = 검출 스크린, 바깥 빗금 = 흡수 띠'], ['#f2f5fa', '오른쪽: 점 = 입자 한 개, 곡선 = 세기']], mVis: '줄무늬 선명도 V', mVisS: '(I최대 − I최소)/(I최대 + I최소)',
+    mProb: '스크린 도달 확률', mProbS: '스크린을 지나간 확률 흐름의 합', mErr: '오차', mWait: '발사하면 측정합니다',
+    msgFire: '▶ 발사를 눌러 파속을 쏘세요', msgRunning: '파동이 퍼지는 중…', msgDone: '완료 — 이제 ● 입자 쏘기로 한 개씩 쏴 보세요',
+    msgBranch: '관측 {i}/{n}: 입자가 {slit} 슬릿에서 검출됨', msgObsDone: '관측 완료 — 각 경로의 무늬가 그냥 더해졌습니다 (간섭 없음)',
+    slitNames: ['1번(위)', '2번', '3번', '4번', '5번', '6번'], slitNames2: ['위', '아래'],
+    ovScreen: '검출 스크린', ovWall: '슬릿', ovDetector: '검출기', ovBlocked: '이번 실행: 다른 경로', ovPacket: '파속',
+    detDots: '점', detCurve: '세기', fresnel: '프레넬 수 F = D²/(λL) = {F} (전체 구멍 폭 D = {D}) — {ok}', fresnelOk: '1보다 작아 원거리(프라운호퍼) 근사가 잘 맞습니다', fresnelBad: '1 이상이라 근거리 효과가 보입니다. 하위헌스 곡선이 더 정확합니다',
+    obsFormula: '관측 ON: 경로를 알면 간섭항이 없어져 세기가 그냥 더해짐',
+    noGl: 'WebGL2 부동소수 렌더링을 쓸 수 없어 CPU로 계산합니다 (느림)',
+    learn1t: '파동은 두 길을 동시에 간다', learn1: '<p>입자는 하나지만, 그 입자를 설명하는 파동함수 ψ는 공간에 퍼져 있습니다. 벽에 닿으면 ψ의 일부가 <b>두 슬릿을 동시에</b> 빠져나가, 슬릿마다 새로운 원형 파동이 생깁니다.</p><p>화면의 색은 ψ의 <b>위상</b>(복소수의 각도), 밝기는 크기입니다. 색이 빨강→초록→청록→보라로 바뀌는 방향이 파동이 흐르는 방향입니다.</p>',
+    learn2t: '위상이 맞으면 밝고, 어긋나면 어둡다', learn2: '<p>스크린의 한 점에 두 슬릿에서 온 파동이 만납니다. 두 경로 길이의 차이가 파장의 정수배면 마루와 마루가 겹쳐 보강, 반 파장 어긋나면 상쇄됩니다.</p><div class="eq">d sinθ = mλ  (m = 0, ±1, ±2 …) → 밝은 줄</div><p>그래서 밝은 줄 사이 간격은 약 λL/d입니다. 오른쪽 숫자 패널에서 시뮬레이션이 이 값과 얼마나 맞는지 확인할 수 있습니다.</p>',
+    learn3t: '입자 하나는 한 점, 많이 모이면 무늬', learn3: '<p>실제 검출기는 파동을 보지 못합니다. 입자 하나가 올 때마다 <b>딱 한 점</b>이 찍힐 뿐입니다. 그 점이 어디일지는 무작위지만, 확률은 |ψ|²(정확히는 스크린을 지나는 확률 흐름)에 비례합니다 — 보른 규칙.</p><p>● 입자 쏘기를 누르면 점이 하나씩 쌓입니다. 처음엔 아무 규칙도 없어 보이지만, 수천 개가 모이면 파동이 그린 무늬가 그대로 드러납니다.</p>',
+    learn4t: '보면 무늬가 사라진다', learn4: '<p>‘어느 슬릿을 지났는지’ 측정하면, 매번 결과는 한 슬릿입니다. 그러면 그 입자의 파동에는 다른 슬릿을 지난 성분이 남지 않습니다.</p><div class="eq">관측 없음: |ψ₁ + ψ₂|² = |ψ₁|² + |ψ₂|² + 2Re(ψ₁*ψ₂)<br>관측 있음: |ψ₁|² + |ψ₂|²   ← 간섭항 없음</div><p>관측을 켜고 다시 발사해 보세요. 두 개의 넓은 봉우리만 남고 줄무늬는 사라집니다.</p>',
+    stepOf: '{i} / {n}',
+    tTitle: '단위 테스트'
+  },
+  en: {
+    tagline: 'Fire particles one at a time, and the dots add up to an interference pattern', fire: '▶ Fire', pause: '❚❚ Pause', resume: '▶ Resume', reset: '⟲ Reset', speed: 'Speed',
+    vPhase: 'Phase', vProb: 'Probability', vReal: 'Real part', learn: '? Why fringes',
+    hSetup: 'Experiment', sSingle: 'Single slit', sSingleD: 'Diffraction: one gap still spreads', sDouble: 'Double slit', sDoubleD: 'Interference: two paths overlap',
+    sMulti: 'Multi-slit (grating)', sMultiD: 'N paths: bright lines get sharper',
+    cLam: 'Wavelength λ', cLamH: 'Momentum p = h/λ · longer wavelength, wider fringes', cD: 'Slit spacing d', cA: 'Slit width a', cN: 'Number of slits N',
+    cSig: 'Packet width σ', cSigH: 'Where the particle is likely to start (Gaussian)',
+    hObs: 'Measurement', obsLabel: 'Measure which slit it went through',
+    obsNote: 'When on, every particle has the slit it passed through recorded. See whether the fringes survive once the path is known.',
+    obsNoteSingle: 'With only one slit the path is already known. Try it on the double or multi-slit.',
+    hTheory: 'Theory (Fraunhofer)', lgSim: 'Simulation (wave)', lgHist: 'Dot histogram', lgFr: 'Fraunhofer', lgHu: 'Huygens (near field)',
+    hParticles: 'Particle mode', partStart: '● Fire particles', partStop: '■ Stop', partWait: 'Computing wave…',
+    mDots: 'Particles detected', mDotsS: 'one dot = one particle', mTV: 'Dots ↔ wave distribution', mTVS: 'total-variation distance, shrinks as dots pile up',
+    partNote: 'Each particle shows up at a single point, chosen at random with probability proportional to the wave\'s probability flux at the screen (Born rule).',
+    hCompare: 'Simulation vs theory',
+    foot: '2-D time-dependent Schrödinger equation · ħ = m = 1, grid spacing 1 · Visscher staggered leapfrog · 4th-order Laplacian', runTests: 'Unit tests (?test=1)',
+    prev: '← Back', next: 'Next →', done: 'Close', close: 'Close',
+    stInside: 'P on grid', stAbsorbed: 'absorbed', stScreen: 'reached screen', stEngine: 'engine',
+    mSpacing: 'Fringe spacing Δy', mSpacingS: 'central bright line ↔ next one', mExact: 'theory L·tan(arcsin λ/d)', mSmall: 'small-angle λL/d',
+    mFirstMin: 'First dark line', mFirstMinS: 'distance from the centre', mFirstMinT: 'theory L·tan(arcsin λ/a)', mNoMin: 'none (λ ≥ a)',
+    mCorrF: 'Match r · Fraunhofer', mCorrH: 'Match r · Huygens', mCorrS: 'correlation with the simulated curve (1 = perfect)', mCorrHS: 'near-field sum with the real distance and beam width',
+    mVisTh: 'Theory V: unmeasured / measured', mVisThS: 'Huygens calculation for the same slits', fCos: '× cos⁴θ (obliquity × flat-screen projection), L = {L}',
+    guide: [['linear-gradient(90deg,#ff7070,#9be35a,#3fd0d0,#8d6bff)', 'Wave ψ: colour = phase, brightness = size'], ['#cfd7e6', 'White wall = slits (barrier of height V = 3)'], ['#7fd7ff', 'Dashed line = detector screen, hatched edge = absorber'], ['#f2f5fa', 'Right: dot = one particle, curve = intensity']], mVis: 'Fringe visibility V', mVisS: '(Imax − Imin)/(Imax + Imin)',
+    mProb: 'P(reach screen)', mProbS: 'integrated probability flux through the screen', mErr: 'error', mWait: 'measured after you fire',
+    msgFire: 'Press ▶ Fire to launch the wave packet', msgRunning: 'The wave is spreading…', msgDone: 'Done — now try ● Fire particles, one at a time',
+    msgBranch: 'Measurement {i}/{n}: particle detected at the {slit} slit', msgObsDone: 'Measured — the patterns from each path simply add (no interference)',
+    slitNames: ['1st (top)', '2nd', '3rd', '4th', '5th', '6th'], slitNames2: ['top', 'bottom'],
+    ovScreen: 'detector screen', ovWall: 'slits', ovDetector: 'detector', ovBlocked: 'this run: other path', ovPacket: 'packet',
+    detDots: 'dots', detCurve: 'intensity', fresnel: 'Fresnel number F = D²/(λL) = {F} (total aperture D = {D}): {ok}', fresnelOk: 'below 1, so the far-field (Fraunhofer) approximation holds', fresnelBad: 'above 1, so near-field effects show. The Huygens curve is more accurate',
+    obsFormula: 'Measured: the path is known, the interference term vanishes, intensities simply add',
+    noGl: 'WebGL2 float rendering unavailable, computing on the CPU (slow)',
+    learn1t: 'The wave takes both paths at once', learn1: '<p>There is one particle, but its wave function ψ is spread out in space. At the wall, part of ψ leaves through <b>both slits at once</b>, and each slit sends out a new circular wave.</p><p>Colour shows the <b>phase</b> of ψ (the angle of a complex number), brightness its size. The direction in which colours run red → green → cyan → violet is the direction the wave flows.</p>',
+    learn2t: 'In phase: bright. Out of phase: dark', learn2: '<p>At each point on the screen, waves from the two slits meet. If the two path lengths differ by a whole number of wavelengths, crest meets crest and they add; if they differ by half a wavelength, they cancel.</p><div class="eq">d sinθ = mλ  (m = 0, ±1, ±2 …) → bright line</div><p>So bright lines are about λL/d apart. The numbers panel shows how closely the simulation matches.</p>',
+    learn3t: 'One particle, one dot. Many particles, a pattern', learn3: '<p>A real detector never sees the wave. Each particle makes <b>exactly one dot</b>. Where it lands is random, but the probability is proportional to |ψ|² (strictly, to the probability flux through the screen): the Born rule.</p><p>Press ● Fire particles and the dots pile up. At first they look structureless; after a few thousand, the pattern the wave drew appears.</p>',
+    learn4t: 'Look, and the fringes vanish', learn4: '<p>Measure which slit the particle went through, and every result is a single slit. The particle\'s wave then has no part left that went through the other slit.</p><div class="eq">no measurement: |ψ₁ + ψ₂|² = |ψ₁|² + |ψ₂|² + 2Re(ψ₁*ψ₂)<br>measured: |ψ₁|² + |ψ₂|²   ← no interference term</div><p>Turn measurement on and fire again. Only two broad humps remain, and the fringes are gone.</p>',
+    stepOf: '{i} / {n}',
+    tTitle: 'Unit tests'
+  }
+};
+
+var $ = function (s) { return document.querySelector(s); };
+var W = QSL.GRID_W, H = QSL.GRID_H, LO = QSL.BAND + 1, HI = H - QSL.BAND - 1, CEN = H / 2 - 0.5;   // CEN = axis in index space
+var S = { setup: 'double', lambda: 8, d: 40, a: 8, n: 4, sigma: 20, obs: false, view: 'phase', gain: 1.4, speed: 40, lang: 'ko' };
+var layers = { sim: true, hist: true, fr: true, hu: true };
+var engine = null, gl = null, P = null, theory = null, M_ABS = QSL.absorberMask(W, H, QSL.BAND, QSL.ALPHA, true);
+var run = { status: 'idle', branches: [], bi: 0, frame: 0, inside: 1 };
+var part = { on: false, waiting: false, rate: 20, dots: [], carry: 0, hist: new Float64Array(H / 4), rng: QSL.mulberry32(20261103), flashes: [] };
+var sceneCache = null;
+
+function t(key, vars) {
+  var s = (I18N[S.lang] && I18N[S.lang][key]) != null ? I18N[S.lang][key] : I18N.ko[key];
+  if (vars && typeof s === 'string') s = s.replace(/\{(\w+)\}/g, function (_, k) { return vars[k]; });
+  return s;
+}
+function fmt(v, d) { return v == null || !isFinite(v) ? '—' : v.toFixed(d); }
+
+/* ---------------- setup / state ---------------- */
+function applyDefaults(setup) {
+  var D = QSL.DEFAULTS[setup]; S.setup = setup; S.lambda = D.lambda; S.d = D.d; S.a = D.a; S.n = D.n; S.sigma = D.sigma;
+}
+function syncControls() {
+  P = QSL.sceneParams(S, W, H);
+  $('#lam').value = S.lambda; $('#lamOut').textContent = S.lambda.toFixed(1);
+  $('#d').value = S.d; $('#dOut').textContent = P.d + (P.d !== S.d ? ' *' : '');
+  $('#a').value = S.a; $('#aOut').textContent = String(P.a);
+  $('#n').value = S.n; $('#nOut').textContent = String(S.n);
+  $('#sig').value = S.sigma; $('#sigOut').textContent = String(S.sigma);
+  $('#ctlD').style.display = P.N > 1 ? '' : 'none'; $('#ctlN').style.display = S.setup === 'multi' ? '' : 'none';
+  document.querySelectorAll('.setup').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.setup === S.setup)); });
+  document.querySelectorAll('#viewSeg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.view === S.view)); });
+  var obs = $('#obs'); obs.disabled = P.N < 2; obs.checked = S.obs && P.N > 1;
+  $('#obsNote').textContent = P.N < 2 ? t('obsNoteSingle') : t('obsNote');
+  renderFormula();
+  try { history.replaceState(null, '', '#' + QSL.encodeHash(S)); } catch (e) { }
+}
+function observing() { return S.obs && P.N > 1; }
+function renderFormula() {
+  var L = QSL.screenDistance(P), f = $('#formula'), F;
+  var ab = 'α = πd·sinθ/λ,  β = πa·sinθ/λ';
+  if (P.N === 1) f.innerHTML = 'I(θ) ∝ <i>sinc²β</i><br>β = πa·sinθ/λ';
+  else if (observing()) f.innerHTML = 'I(θ) ∝ N · <i>sinc²β</i><span class="fn">' + t('obsFormula') + '</span>';
+  else if (P.N === 2) f.innerHTML = 'I(θ) ∝ <i>cos²α</i> · sinc²β<br>' + ab;
+  else f.innerHTML = 'I(θ) ∝ <i>[sin Nα / (N sin α)]²</i> · sinc²β<br>' + ab;
+  f.innerHTML += '<span class="fn">' + t('fCos', { L: L.toFixed(0) }) + '</span>';
+  var D = (P.N - 1) * P.d + P.a; F = D * D / (P.lambda * L);          // Fresnel number of the whole aperture
+  $('#fresnelNote').textContent = t('fresnel', { D: D, F: F.toFixed(2), ok: F < 1 ? t('fresnelOk') : t('fresnelBad') });
+}
+function computeTheory() {
+  theory = QSL.theoryCurves(P, H, observing());
+  if (observing()) {                       // reference: what the fringes would look like without / with the measurement
+    theory.vCoh = QSL.visibility(QSL.theoryCurves(P, H, false).hu, LO, HI, CEN, 80);
+    theory.vInc = QSL.visibility(theory.hu, LO, HI, CEN, 80);
+  }
+}
+function scene(only) {
+  var sc = QSL.buildScene(P, W, H, { only: only });
+  return { V: sc.V, M: M_ABS, wall: sc.wall, slits: sc.slits, dt: QSL.stableDt(QSL.V_CAP),
+    packet: { x0: P.x0, y0: P.y0, sigma: P.sigma, lambda: P.lambda }, fluxX: P.screenX };
+}
+
+/* ---------------- run control ---------------- */
+function resetRun(keepStatus) {
+  run.status = 'idle'; run.bi = 0; run.frame = 0; run.inside = 1;
+  var N = P.N, br = [];
+  if (observing()) for (var j = 0; j < N; j++) br.push({ only: j, acc: new Float64Array(H), P: 0, done: false });
+  else br.push({ only: -1, acc: new Float64Array(H), P: 0, done: false });
+  run.branches = br;
+  sceneCache = scene(br[0].only); engine.reset(sceneCache);
+  clearDots(); computeTheory(); updateButtons(); showMsg(t('msgFire'));
+}
+function fire() {
+  if (run.status === 'running') return;
+  if (run.status === 'paused') { run.status = 'running'; updateButtons(); return; }
+  if (run.status === 'done') resetRun();
+  run.status = 'running'; startBranch(0); updateButtons();
+}
+function startBranch(i) {
+  run.bi = i; run.frame = 0; var b = run.branches[i];
+  sceneCache = scene(b.only); engine.reset(sceneCache);
+  if (observing()) showMsg(t('msgBranch', { i: i + 1, n: run.branches.length, slit: slitName(b.only) }), 0);
+  else showMsg(t('msgRunning'), 1800);
+}
+function slitName(j) { return P.N === 2 ? t('slitNames2')[j] : t('slitNames')[j]; }
+function branchDone() {
+  var b = run.branches[run.bi]; b.done = true;
+  if (run.bi + 1 < run.branches.length) { startBranch(run.bi + 1); return; }
+  run.status = 'done'; updateButtons();
+  showMsg(observing() ? t('msgObsDone') : t('msgDone'), 5000);
+  if (part.waiting) { part.waiting = false; part.on = true; updateButtons(); }
+}
+function combined() {
+  var c = new Float64Array(H);
+  for (var i = 0; i < run.branches.length; i++) { var a = run.branches[i].acc; for (var y = 0; y < H; y++) c[y] += a[y]; }
+  return c;
+}
+function tick() {
+  if (run.status === 'running') {
+    var b = run.branches[run.bi], steps = part.waiting ? 140 : S.speed;
+    if (engine.kind === 'CPU') steps = Math.max(2, Math.round(steps / 8));
+    engine.step(steps); run.frame++;
+    engine.readFlux(b.acc);
+    if (run.frame % 6 === 0) {
+      run.inside = engine.norm();
+      var tMin = (P.screenX - P.x0 + 3 * P.sigma) / (2 * Math.PI / P.lambda);
+      if ((engine.t > tMin && run.inside < 2e-3) || engine.t > 4 * tMin) branchDone();
+    }
+  }
+  if (part.on) emitDots();
+  draw();
+  requestAnimationFrame(tick);
+}
+
+/* ---------------- particle mode ---------------- */
+function clearDots() { part.dots = []; part.hist = new Float64Array(H / 4); part.carry = 0; part.flashes = []; part.cdfs = null; $('#dotCount').textContent = '0'; $('#tvVal').textContent = '—'; }
+function buildCdfs() {
+  var w = [], c = [];
+  for (var i = 0; i < run.branches.length; i++) {          // only the visible screen (outside it is the absorbing band)
+    var a = new Float64Array(H), s = 0; for (var y = LO; y < HI; y++) { a[y] = Math.max(0, run.branches[i].acc[y]); s += a[y]; }
+    w.push(s); c.push(QSL.buildCdf(a));
+  }
+  part.cdfs = { w: w, c: c, wsum: w.reduce(function (x, y) { return x + y; }, 0) };
+}
+function emitDots() {
+  if (!part.cdfs) buildCdfs();
+  var dtf = 1 / 60; part.carry += part.rate * dtf; var n = Math.floor(part.carry); part.carry -= n;
+  if (part.dots.length > 60000) n = 0;
+  for (var k = 0; k < n; k++) {
+    var u = part.rng() * part.cdfs.wsum, j = 0; while (j < part.cdfs.w.length - 1 && u > part.cdfs.w[j]) { u -= part.cdfs.w[j]; j++; }
+    var y = QSL.sampleCdf(part.cdfs.c[j], part.rng()), d = { y: y, x: part.rng(), j: j };
+    part.dots.push(d); part.hist[Math.min(part.hist.length - 1, Math.floor(y / 4))]++;
+    if (part.flashes.length < 14) part.flashes.push({ y: y, life: 1 });
+    drawDot(d);
+  }
+  if (n) {
+    $('#dotCount').textContent = part.dots.length.toLocaleString();
+    var simBins = new Float64Array(part.hist.length), c = combined();
+    for (var y2 = LO; y2 < HI; y2++) simBins[Math.floor(y2 / 4)] += Math.max(0, c[y2]);
+    $('#tvVal').textContent = QSL.tvDistance(part.hist, simBins).toFixed(3);
+  }
+}
+
+/* ---------------- drawing ---------------- */
+var cv = {}, dpr = 1, dotLayer = document.createElement('canvas'), dotCtx = dotLayer.getContext('2d');
+var BRANCH_COL = ['#7fd7ff', '#ffb0d0', '#c6f08a', '#ffd27f', '#b9a8ff', '#8ff0e0'];
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  var wr = $('#wave').getBoundingClientRect(), dr = $('#det').getBoundingClientRect();
+  cv.ww = Math.max(1, Math.round(wr.width * dpr)); cv.wh = Math.max(1, Math.round(wr.height * dpr));
+  cv.dw = Math.max(1, Math.round(dr.width * dpr)); cv.dh = cv.wh;
+  if (gl) { $('#glCanvas').width = cv.ww; $('#glCanvas').height = cv.wh; }
+  $('#ovCanvas').width = cv.ww; $('#ovCanvas').height = cv.wh;
+  $('#detCanvas').width = cv.dw; $('#detCanvas').height = cv.dh;
+  dotLayer.width = Math.max(1, Math.round(cv.dw * 0.44)); dotLayer.height = cv.dh;
+  dotCtx.clearRect(0, 0, dotLayer.width, dotLayer.height); var all = part.dots; part.dots = []; all.forEach(function (d) { part.dots.push(d); drawDot(d); });
+}
+function drawDot(d) {
+  var r = Math.max(1, dpr * 1.2), n = part.dots.length;
+  dotCtx.fillStyle = run.branches.length > 1 ? BRANCH_COL[d.j % 6] : '#bfe6ff';
+  dotCtx.globalAlpha = Math.max(0.07, Math.min(0.95, 1500 / (n + 1500)));   // early dots bright, later ones fainter so the strip never saturates
+  dotCtx.fillRect(3 * dpr + d.x * (dotLayer.width - 6 * dpr), d.y / H * dotLayer.height - r / 2, r, r);
+}
+function draw() {
+  var mode = S.view === 'phase' ? 0 : S.view === 'prob' ? 1 : 2;
+  engine.draw(mode, S.gain, cv.ww, cv.wh);
+  drawOverlay(); drawDetector(); drawStatus();
+}
+function drawOverlay() {
+  var c = $('#ovCanvas').getContext('2d'), w = cv.ww, h = cv.wh, sx = w / W, sy = h / H, fs = Math.round(Math.max(10, Math.min(13, w / dpr / 58)) * dpr);
+  c.clearRect(0, 0, w, h);
+  c.font = '500 ' + fs + 'px "Noto Sans KR", sans-serif';
+  // screen line
+  var xs = (P.screenX + 0.5) * sx;
+  c.strokeStyle = 'rgba(191,230,255,.55)'; c.setLineDash([4 * dpr, 4 * dpr]); c.lineWidth = dpr;
+  c.beginPath(); c.moveTo(xs, LO * sy); c.lineTo(xs, HI * sy); c.stroke(); c.setLineDash([]);
+  c.fillStyle = 'rgba(191,230,255,.8)'; c.textAlign = 'right'; c.textBaseline = 'top';
+  c.fillText(t('ovScreen'), xs - 6 * dpr, (LO + 2) * sy);
+  // packet marker before firing
+  if (run.status === 'idle') {
+    var px = P.x0 * sx, py = P.y0 * sy;
+    c.strokeStyle = 'rgba(255,255,255,.75)'; c.lineWidth = 1.5 * dpr;
+    c.beginPath(); c.moveTo(px + P.sigma * 1.2 * sx, py); c.lineTo(px + P.sigma * 2.4 * sx, py); c.stroke();
+    c.beginPath(); c.moveTo(px + P.sigma * 2.4 * sx, py); c.lineTo(px + P.sigma * 2.4 * sx - 6 * dpr, py - 4 * dpr); c.lineTo(px + P.sigma * 2.4 * sx - 6 * dpr, py + 4 * dpr); c.closePath(); c.fillStyle = 'rgba(255,255,255,.75)'; c.fill();
+    c.textAlign = 'center'; c.textBaseline = 'top'; c.fillStyle = 'rgba(231,236,245,.85)';
+    c.fillText(t('ovPacket') + ' λ=' + P.lambda, px, py + P.sigma * 1.5 * sy);
+  }
+  // slit dimension labels
+  var xw = (P.wallX + P.wallT / 2) * sx, sl = QSL.slitList(P, H);
+  c.textAlign = 'right'; c.textBaseline = 'top'; c.fillStyle = 'rgba(231,236,245,.7)';
+  c.fillText(t('ovWall'), xw - 8 * dpr, (LO + 2) * sy);
+  if (P.N > 1) {
+    var y1 = sl[sl.length - 2].c * sy, y2 = sl[sl.length - 1].c * sy, xd = xw - 14 * dpr;
+    c.strokeStyle = 'rgba(255,180,84,.8)'; c.lineWidth = dpr; c.beginPath(); c.moveTo(xd, y1); c.lineTo(xd, y2); c.moveTo(xd - 3 * dpr, y1); c.lineTo(xd + 3 * dpr, y1); c.moveTo(xd - 3 * dpr, y2); c.lineTo(xd + 3 * dpr, y2); c.stroke();
+    c.fillStyle = 'rgba(255,180,84,.95)'; c.textAlign = 'right'; c.textBaseline = 'middle'; c.fillText('d', xd - 5 * dpr, (y1 + y2) / 2);
+  }
+  // which-path detector markers
+  if (observing() && run.status !== 'idle') {
+    var b = run.branches[run.bi];
+    for (var j = 0; j < sl.length; j++) {
+      var yy = sl[j].c * sy, on = j === b.only, x0 = (P.wallX + P.wallT + 3) * sx;
+      c.fillStyle = on ? 'rgba(255,120,140,.95)' : 'rgba(139,151,173,.6)';
+      c.beginPath(); c.arc(x0 + 5 * dpr, yy, 4 * dpr, 0, 7); c.fill();
+      if (on) { c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(t('ovDetector') + ' ✓', x0 + 13 * dpr, yy); }
+    }
+  }
+  // detection flashes on the screen line
+  for (var k = part.flashes.length - 1; k >= 0; k--) {
+    var f = part.flashes[k]; f.life -= 0.05; if (f.life <= 0) { part.flashes.splice(k, 1); continue; }
+    c.fillStyle = 'rgba(220,240,255,' + f.life.toFixed(2) + ')'; c.beginPath(); c.arc(xs, f.y * sy, (1.5 + 2.5 * (1 - f.life)) * dpr, 0, 7); c.fill();
+  }
+  // L arrow
+  var yb = (HI - 6) * sy; c.strokeStyle = 'rgba(139,151,173,.6)'; c.lineWidth = dpr;
+  c.beginPath(); c.moveTo(xw, yb); c.lineTo(xs, yb); c.stroke();
+  c.fillStyle = 'rgba(139,151,173,.9)'; c.textAlign = 'center'; c.textBaseline = 'bottom'; c.fillText('L = ' + QSL.screenDistance(P).toFixed(0), (xw + xs) / 2, yb - 3 * dpr);
+}
+function drawDetector() {
+  var c = $('#detCanvas').getContext('2d'), w = cv.dw, h = cv.dh, sy = h / H, stripW = dotLayer.width, x0 = stripW + 6 * dpr, pw = w - x0 - 8 * dpr;
+  c.clearRect(0, 0, w, h);
+  // absorber zones
+  c.fillStyle = 'rgba(255,255,255,.025)'; c.fillRect(0, 0, w, LO * sy); c.fillRect(0, HI * sy, w, h - HI * sy);
+  // dots strip
+  c.fillStyle = '#04060a'; c.fillRect(0, LO * sy, stripW, (HI - LO) * sy);
+  c.drawImage(dotLayer, 0, 0);
+  c.strokeStyle = 'rgba(255,255,255,.08)'; c.beginPath(); c.moveTo(stripW + 0.5, 0); c.lineTo(stripW + 0.5, h); c.stroke();
+  // centre line
+  c.strokeStyle = 'rgba(255,255,255,.07)'; c.beginPath(); c.moveTo(x0, h / 2); c.lineTo(w, h / 2); c.stroke();
+  var sim = QSL.normalizeMax(combined()), have = sim.some(function (v) { return v > 0; });
+  // histogram of dots
+  if (layers.hist && part.dots.length) {
+    var hm = 0, i; for (i = 0; i < part.hist.length; i++) hm = Math.max(hm, part.hist[i]);
+    c.fillStyle = 'rgba(191,230,255,.28)';
+    for (i = 0; i < part.hist.length; i++) if (part.hist[i]) c.fillRect(x0, i * 4 * sy + 0.5, part.hist[i] / hm * pw, 4 * sy - 1);
+  }
+  function curve(a, col, wdt, dash) {
+    c.strokeStyle = col; c.lineWidth = wdt * dpr; c.setLineDash(dash ? [5 * dpr, 4 * dpr] : []); c.beginPath();
+    for (var y = LO; y < HI; y++) { var X = x0 + a[y] * pw, Y = (y + 0.5) * sy; if (y === LO) c.moveTo(X, Y); else c.lineTo(X, Y); }
+    c.stroke(); c.setLineDash([]);
+  }
+  if (layers.hu && theory) curve(theory.hu, '#6fe0c0', 1.4, false);
+  if (layers.fr && theory) curve(theory.fr, '#ffb454', 1.4, true);
+  if (layers.sim && have) curve(sim, '#f2f5fa', 1.6, false);
+  // labels
+  c.fillStyle = 'rgba(139,151,173,.9)'; c.font = '500 ' + Math.round(10.5 * dpr) + 'px "Noto Sans KR", sans-serif';
+  c.textBaseline = 'top'; c.textAlign = 'center'; c.fillText(t('detDots'), stripW / 2, 8 * dpr); c.fillText(t('detCurve'), x0 + pw / 2, 8 * dpr);
+}
+function drawStatus() {
+  if (run.frame % 4 && run.status === 'running') return;
+  var c = combined(), Ps = 0; for (var y = 0; y < H; y++) Ps += c[y];
+  var inside = run.status === 'idle' ? 1 : run.inside;
+  function it(k, v) { return '<span>' + k + ' <b>' + v + '</b></span>'; }
+  $('#status').innerHTML = it(t('stInside'), fmt(inside, 3)) + it(t('stAbsorbed'), fmt(1 - inside, 3)) + it(t('stScreen'), fmt(Ps, 3)) +
+    it('t', engine.t.toFixed(0)) + it('dt', engine.dt.toFixed(2)) + it(t('stEngine'), engine.kind);
+  if (run.frame % 12 === 0 || run.status !== 'running') renderMetrics(c, Ps);
+}
+function metricRow(k, ks, v, vs, cls) {
+  return '<div class="metric"><div class="k">' + k + (ks ? '<small>' + ks + '</small>' : '') + '</div><div class="v' + (cls ? ' ' + cls : '') + '">' + v + (vs ? '<small>' + vs + '</small>' : '') + '</div></div>';
+}
+function errPct(sim, th) { if (sim == null || !isFinite(th)) return ''; var e = (sim / th - 1) * 100; return t('mErr') + ' ' + (e >= 0 ? '+' : '') + e.toFixed(1) + '%'; }
+var lastMetrics = '';
+function renderMetrics(c, Ps) {
+  var html = '';
+  if (run.status === 'idle') { html = '<p class="note" style="margin:0">' + t('mWait') + '</p>'; }
+  else {
+    var sim = QSL.normalizeMax(c), done = run.status === 'done';
+    if (P.N > 1 && !observing()) {
+      var ft = QSL.fringeTheory(P), fs = done ? QSL.fringeSpacing(sim, LO, HI, CEN, P.N > 2 ? 0.4 : 0.05) : null;
+      html += metricRow(t('mSpacing'), t('mSpacingS'), fs ? fs.spacing.toFixed(1) : '…', fs ? errPct(fs.spacing, ft.exact) : '', 'big');
+      html += metricRow(t('mExact'), '', fmt(ft.exact, 1), '');
+      html += metricRow(t('mSmall'), '', fmt(ft.smallAngle, 1), fs ? errPct(fs.spacing, ft.smallAngle) : '');
+    } else if (P.N === 1) {
+      var mt = QSL.firstMinTheory(P), fm = done && isFinite(mt) ? QSL.firstMinimum(sim, LO, HI, CEN) : null;
+      html += metricRow(t('mFirstMin'), t('mFirstMinS'), isFinite(mt) ? (fm != null ? fm.toFixed(1) : '…') : t('mNoMin'), fm != null ? errPct(fm, mt) : '', 'big');
+      html += metricRow(t('mFirstMinT'), '', isFinite(mt) ? mt.toFixed(1) : t('mNoMin'), '');
+    }
+    if (P.N > 1) {
+      var V = done ? QSL.visibility(sim, LO, HI, CEN, 80) : null;
+      html += metricRow(t('mVis'), t('mVisS'), fmt(V, 2), '', observing() ? 'big' : (V == null ? '' : V > 0.5 ? 'good' : 'bad'));
+      if (observing()) html += metricRow(t('mVisTh'), t('mVisThS'), fmt(theory.vCoh, 2) + ' / ' + fmt(theory.vInc, 2), '');
+    }
+    if (theory) {
+      var rF = done ? QSL.pearson(sim, theory.fr, LO, HI) : null, rH = done ? QSL.pearson(sim, theory.hu, LO, HI) : null;
+      html += metricRow('<span style="color:var(--fr)">' + t('mCorrF') + '</span>', t('mCorrS'), fmt(rF, 3), '');
+      html += metricRow('<span style="color:var(--hu)">' + t('mCorrH') + '</span>', t('mCorrHS'), fmt(rH, 3), '');
+    }
+    html += metricRow(t('mProb'), t('mProbS'), fmt(Ps, 3), '');
+  }
+  if (html !== lastMetrics) { $('#metrics').innerHTML = html; lastMetrics = html; }
+}
+var msgTimer = 0;
+function showMsg(text, ms) {
+  var m = $('#msg'); m.textContent = text; m.classList.add('on'); clearTimeout(msgTimer);
+  if (ms) msgTimer = setTimeout(function () { m.classList.remove('on'); }, ms);
+}
+function updateButtons() {
+  $('#fireBtn').textContent = run.status === 'paused' ? t('resume') : t('fire');
+  $('#fireBtn').disabled = run.status === 'running';
+  $('#pauseBtn').disabled = run.status !== 'running';
+  $('#partBtn').textContent = part.waiting ? t('partWait') : part.on ? t('partStop') : t('partStart');
+}
+
+/* ---------------- i18n ---------------- */
+function applyLang() {
+  document.documentElement.lang = S.lang;
+  document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('#langSeg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === S.lang)); });
+  $('#guide').innerHTML = t('guide').map(function (g) { return '<div><i style="background:' + g[0] + '"></i><span>' + g[1] + '</span></div>'; }).join('');
+  updateButtons(); syncControls(); lastMetrics = ''; renderMetrics(combined(), 0); drawStatus();
+  if (learnIdx >= 0) showLearn(learnIdx);
+}
+
+/* ---------------- learn overlay ---------------- */
+var learnIdx = -1;
+function showLearn(i) {
+  learnIdx = i; $('#learn').classList.add('on');
+  $('#learnStep').textContent = t('stepOf', { i: i + 1, n: 4 });
+  $('#learnTitle').textContent = t('learn' + (i + 1) + 't'); $('#learnBody').innerHTML = t('learn' + (i + 1));
+  $('#learnDots').innerHTML = [0, 1, 2, 3].map(function (k) { return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('');
+  $('#learnPrev').disabled = i === 0; $('#learnNext').textContent = i === 3 ? t('done') : t('next');
+  $('#learnNext').focus();
+}
+function hideLearn() { learnIdx = -1; $('#learn').classList.remove('on'); }
+
+/* ---------------- events ---------------- */
+function paramsChanged() { part.on = false; part.waiting = false; syncControls(); resetRun(); }
+function bind() {
+  $('#fireBtn').onclick = fire;
+  $('#pauseBtn').onclick = function () { if (run.status === 'running') { run.status = 'paused'; updateButtons(); } };
+  $('#resetBtn').onclick = function () { part.on = false; part.waiting = false; resetRun(); };
+  $('#speed').oninput = function (e) { S.speed = +e.target.value; };
+  document.querySelectorAll('.setup').forEach(function (b) { b.onclick = function () { applyDefaults(b.dataset.setup); paramsChanged(); }; });
+  [['lam', 'lambda'], ['d', 'd'], ['a', 'a'], ['n', 'n'], ['sig', 'sigma']].forEach(function (p) {
+    $('#' + p[0]).oninput = function (e) { S[p[1]] = +e.target.value; syncControls(); };
+    $('#' + p[0]).onchange = function () { paramsChanged(); };
+  });
+  $('#obs').onchange = function (e) { S.obs = e.target.checked; paramsChanged(); };
+  document.querySelectorAll('#viewSeg button').forEach(function (b) { b.onclick = function () { S.view = b.dataset.view; syncControls(); }; });
+  document.querySelectorAll('#langSeg button').forEach(function (b) { b.onclick = function () { S.lang = b.dataset.lang; try { localStorage.setItem('qslLang', S.lang); } catch (e) { } applyLang(); }; });
+  document.querySelectorAll('#rateSeg button').forEach(function (b) { b.onclick = function () { part.rate = +b.dataset.rate; document.querySelectorAll('#rateSeg button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); }; });
+  document.querySelectorAll('#legend button').forEach(function (b) { b.onclick = function () { layers[b.dataset.layer] = !layers[b.dataset.layer]; b.setAttribute('aria-pressed', String(layers[b.dataset.layer])); }; });
+  $('#partBtn').onclick = function () {
+    if (part.on || part.waiting) { part.on = false; part.waiting = false; updateButtons(); return; }
+    if (run.status === 'done') { part.on = true; } else { part.waiting = true; if (run.status !== 'running') fire(); }
+    updateButtons();
+  };
+  $('#learnBtn').onclick = function () { showLearn(0); };
+  $('#learnPrev').onclick = function () { if (learnIdx > 0) showLearn(learnIdx - 1); };
+  $('#learnNext').onclick = function () { if (learnIdx < 3) showLearn(learnIdx + 1); else hideLearn(); };
+  $('#learn').onclick = function (e) { if (e.target.id === 'learn') hideLearn(); };
+  $('#testClose').onclick = function () { $('#testOut').classList.remove('on'); };
+  window.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT' && e.target.type !== 'range' && e.target.type !== 'checkbox') return;
+    if (learnIdx >= 0) { if (e.key === 'Escape') hideLearn(); if (e.key === 'ArrowRight') $('#learnNext').click(); if (e.key === 'ArrowLeft') $('#learnPrev').click(); return; }
+    if (e.key === ' ') { e.preventDefault(); if (run.status === 'running') $('#pauseBtn').click(); else fire(); }
+    else if (e.key === 'r' || e.key === 'R') $('#resetBtn').click();
+    else if (e.key === 'p' || e.key === 'P') $('#partBtn').click();
+    else if ((e.key === 'o' || e.key === 'O') && P.N > 1) { S.obs = !S.obs; paramsChanged(); }
+    else if (e.key === '1' || e.key === '2' || e.key === '3') { applyDefaults(['single', 'double', 'multi'][+e.key - 1]); paramsChanged(); }
+  });
+  window.addEventListener('resize', resize);
+  if (window.ResizeObserver) new ResizeObserver(resize).observe($('#wave'));
+}
+
+/* ---------------- boot ---------------- */
+function boot() {
+  var q = new URLSearchParams(location.search), lang = q.get('lang');
+  try { lang = lang || localStorage.getItem('qslLang'); } catch (e) { }
+  if (lang === 'en' || lang === 'ko') S.lang = lang;
+  var h = QSL.decodeHash(location.hash);
+  if (h) { for (var k in h) S[k] = h[k]; } else applyDefaults('double');
+  P = QSL.sceneParams(S, W, H);
+  try { if (q.get('cpu') !== '1') { gl = makeGl($('#glCanvas')); if (gl) engine = new GpuEngine(gl, W, H); } } catch (e) { console.warn(e); gl = null; engine = null; }
+  if (!engine) { $('#glCanvas').style.display = 'none'; $('#cpuCanvas').style.display = 'block'; engine = new CpuEngine($('#cpuCanvas'), W, H); }
+  bind(); resize(); applyLang(); resetRun();
+  if (engine.kind === 'CPU') showMsg(t('noGl'), 6000);
+  requestAnimationFrame(tick);
+  if (q.get('test') === '1') setTimeout(runTests, 50);
+}
+</script>
+
+<!-- ==================================================================== -->
+<!-- Unit tests (?test=1)                                                    -->
+<!-- ==================================================================== -->
+<script>
+'use strict';
+async function runTests() {
+  var results = [], pause = function () { return new Promise(function (r) { setTimeout(r, 0); }); };
+  $('#testOut').classList.add('on'); $('#testTitle').textContent = t('tTitle') + ' …';
+  function render() {
+    $('#testTable').innerHTML = results.map(function (r, i) { return '<tr><td>' + (r.ok ? '✅' : '❌') + '</td><td>' + (i + 1) + '. ' + r.name + '</td><td>' + r.info + '</td></tr>'; }).join('');
+  }
+  async function T(name, fn) {
+    await pause(); var r;
+    try { r = await fn(); } catch (e) { r = { ok: false, info: 'exception: ' + e.message }; }
+    results.push({ name: name, ok: !!r.ok, info: r.info }); console.log((r.ok ? 'PASS ' : 'FAIL ') + name + ' — ' + r.info); render();
+  }
+  var Q = QSL, k8 = 2 * Math.PI / 8;
+  function freeSim(W2, H2, absorb) { var s = new Q.CpuSim(W2, H2); if (absorb) s.M.set(Q.absorberMask(W2, H2, 32, Q.ALPHA, true)); return s; }
+
+  await T('Probability conserved (no absorber, 2000 steps)', function () {
+    var s = freeSim(128, 96); s.initPacket({ x0: 64, y0: 48, sigma: 8, lambda: 8 }); var n0 = s.norm(); s.step(2000); var e = Math.abs(s.norm() - n0);
+    return { ok: e < 1e-3, info: '|ΔΣ|ψ|²| = ' + e.toExponential(2) + ' (< 1e-3)' };
+  });
+  await T('Packet centre moves at group velocity k₀', function () {
+    var s = freeSim(256, 128); s.initPacket({ x0: 70, y0: 64, sigma: 12, lambda: 8 }); var a = s.moments(); s.step(500); var b = s.moments(), v = (b.x - a.x) / s.t, e = Math.abs(v / k8 - 1);
+    return { ok: e < 0.03, info: 'v = ' + v.toFixed(4) + ' vs k₀ = ' + k8.toFixed(4) + ' (' + (e * 100).toFixed(2) + '% < 3%)' };
+  });
+  await T('Packet spreads as σ√(1 + (t/2σ²)²)', function () {
+    var s = freeSim(256, 128); s.initPacket({ x0: 70, y0: 64, sigma: 12, lambda: 8 }); s.step(500); var m = s.moments();
+    var th = 12 * Math.sqrt(1 + Math.pow(s.t / 288, 2)), e = Math.abs(m.sy / th - 1);
+    return { ok: e < 0.05, info: 'σ_y = ' + m.sy.toFixed(3) + ' vs ' + th.toFixed(3) + ' (' + (e * 100).toFixed(3) + '% < 5%)' };
+  });
+  await T('Absorbing band reflects < 1 %', function () {
+    var worst = 0;
+    [6, 8, 16].forEach(function (lam) {
+      var s = freeSim(256, 128, true); s.initPacket({ x0: 150, y0: 64, sigma: 10, lambda: lam });
+      s.step(Math.round((2 * 106 + 60) / (2 * Math.PI / lam) * 1.3 / 0.2));
+      var R = s.R, I = s.I, Ip = s.Ip, r = 0;
+      for (var y = 32; y < 96; y++) for (var x = 32; x < 224; x++) { var i = y * 256 + x; r += R[i] * R[i] + I[i] * Ip[i]; }
+      worst = Math.max(worst, r);
+    });
+    return { ok: worst < 0.01, info: 'worst reflection (λ = 6, 8, 16) = ' + worst.toExponential(2) };
+  });
+  await T('Flux detector: free packet → Σ flux ≈ 1', function () {
+    var s = freeSim(256, 128, true); s.initPacket({ x0: 70, y0: 64, sigma: 10, lambda: 8 });
+    var fl = { x: 200, acc: new Float64Array(128) }; s.step(1400, fl); var P2 = fl.acc.reduce(function (a, b) { return a + b; }, 0);
+    return { ok: Math.abs(P2 - 1) < 0.01, info: 'Σ j_x dt = ' + P2.toFixed(5) + ' (|1 − Σ| < 1 %)' };
+  });
+  await T('Slit geometry: N slits of exactly a cells, centred, spacing d', function () {
+    var p = Q.sceneParams({ setup: 'multi', lambda: 8, d: 24, a: 6, n: 4, sigma: 20 }, 512, 384), sc = Q.buildScene(p, 512, 384), runs = [], open = false, st = 0;
+    for (var y = 0; y <= 384; y++) { var o = y < 384 && sc.wall[y * 512 + p.wallX] === 0; if (o && !open) st = y; if (!o && open) runs.push([st, y - st]); open = o; }
+    var ok = runs.length === 4 && runs.every(function (r) { return r[1] === 6; }) && Math.abs((runs[0][0] + runs[3][0] + 6) / 2 - 192) < 1e-9 /* index space: centre between cells 191|192 */ && runs[1][0] - runs[0][0] === 24;
+    var thick = 0; for (var x = 0; x < 512; x++) thick += sc.wall[10 * 512 + x];
+    return { ok: ok && thick === 4, info: 'open runs ' + JSON.stringify(runs) + ', wall thickness ' + thick };
+  });
+  await T('Wall is opaque (closed wall: transmitted < 1e-6)', function () {
+    var s = freeSim(256, 128, true), V = new Float32Array(256 * 128);
+    for (var y = 0; y < 128; y++) for (var x = 128; x < 132; x++) V[y * 256 + x] = Q.V_CAP;
+    s.setPotential(V); s.initPacket({ x0: 70, y0: 64, sigma: 10, lambda: 6 }); var fl = { x: 180, acc: new Float64Array(128) }; s.step(1200, fl);
+    var P2 = fl.acc.reduce(function (a, b) { return a + b; }, 0);
+    return { ok: Math.abs(P2) < 1e-6, info: 'P(through wall) = ' + P2.toExponential(2) + ' (λ = 6, highest energy allowed)' };
+  });
+  await T('dt is limited by stability (and the limit matters)', function () {
+    var dt = Q.stableDt(10), s = freeSim(96, 64), V = new Float32Array(96 * 64);
+    for (var y = 0; y < 64; y++) for (var x = 64; x < 80; x++) V[y * 96 + x] = 10;
+    s.setPotential(V); s.dt = dt;
+    s.initPacket({ x0: 36, y0: 32, sigma: 6, lambda: 6 }); s.step(1500); var okS = Math.abs(s.norm() - 1) < 1e-6;
+    var u = freeSim(96, 64); u.setPotential(V); u.dt = 2.2 / (Q.LAP_EMAX + 10); u.initPacket({ x0: 36, y0: 32, sigma: 6, lambda: 6 }); u.step(1500); var blew = !(Math.abs(u.norm()) < 10);
+    return { ok: dt < 0.2 && okS && blew && Q.stableDt(Q.V_CAP) === 0.2, info: 'stableDt(V=10) = ' + dt.toFixed(4) + ', |ΔΣ| at that dt = ' + Math.abs(s.norm() - 1).toExponential(1) + '; 10 % above the limit diverges: ' + blew };
+  });
+  await T('Inverse-CDF sampling matches the distribution (χ², 10⁵ samples)', function () {
+    var p = Q.sceneParams({ setup: 'double', lambda: 8, d: 40, a: 8, n: 4, sigma: 20 }), w = new Float64Array(384);
+    for (var y = 0; y < 384; y++) w[y] = Q.fraunhofer(y, p, 384);
+    var c = Q.buildCdf(w), rng = Q.mulberry32(7), bins = new Float64Array(48), N = 100000;
+    for (var i = 0; i < N; i++) bins[Math.floor(Q.sampleCdf(c, rng()) / 8)]++;
+    var ws = w.reduce(function (a, b) { return a + b; }, 0), chi = 0, dof = 0;
+    for (var b = 0; b < 48; b++) { var e = 0; for (y = b * 8; y < b * 8 + 8; y++) e += w[y] / ws * N; if (e > 5) { chi += Math.pow(bins[b] - e, 2) / e; dof++; } }
+    dof -= 1; var lim = dof + 4 * Math.sqrt(2 * dof);
+    return { ok: chi < lim, info: 'χ² = ' + chi.toFixed(1) + ' for ' + dof + ' dof (limit ' + lim.toFixed(1) + ')' };
+  });
+  await T('Fraunhofer formula: zeros and peaks where expected', function () {
+    var p = { N: 2, d: 40, a: 8, lambda: 8, screenX: 470, wallX: 168, wallT: 4 }, L = Q.screenDistance(p), H2 = 384;
+    function yAt(s) { return H2 / 2 + L * Math.tan(Math.asin(s)); }
+    var z1 = Q.fraunhofer(yAt(8 / 80), p, H2), m1 = Q.fraunhofer(yAt(8 / 40), p, H2), c = Q.fraunhofer(H2 / 2, p, H2);
+    var p1 = { N: 1, d: 0, a: 24, lambda: 8, screenX: 470, wallX: 168, wallT: 4 }, s1 = Q.fraunhofer(yAt(1 / 3), p1, H2);
+    var c4 = Math.pow(Math.cos(Math.asin(0.2)), 4), env = Math.pow(Q.sinc(Math.PI * 0.2), 2) * c4;
+    return { ok: z1 < 1e-12 && Math.abs(m1 - env) < 1e-9 && c === 1 && s1 < 1e-12, info: 'double: I(λ/2d) = ' + z1.toExponential(1) + ', I(λ/d) = envelope; single: I(λ/a) = ' + s1.toExponential(1) };
+  });
+  await T('Huygens model → Fraunhofer in the far field', function () {
+    var p = { N: 2, d: 40, a: 8, lambda: 8, sigma: 4000, x0: 0, y0: 5000, wallX: 0, wallT: 0, screenX: 60000 }, H2 = 10000, ys = [], fr = [];
+    for (var i = 0; i <= 200; i++) { var th = (i - 100) / 100 * 0.5; ys.push(H2 / 2 + 60000 * Math.tan(th)); fr.push(Q.fraunhofer(ys[i], p, H2)); }
+    p.sigma = 1e7; var hu = Q.normalizeMax(Q.huygens(ys, p, H2)), f2 = Q.normalizeMax(fr), mx = 0;
+    for (i = 0; i <= 200; i++) mx = Math.max(mx, Math.abs(hu[i] - f2[i]));
+    return { ok: mx < 0.02, info: 'max |Huygens − Fraunhofer| = ' + mx.toExponential(2) + ' (L = 60000, plane wave)' };
+  });
+  await T('Phase colours: arg 0 / π/2 / π', function () {
+    var a = Q.phaseColor(1, 0), b = Q.phaseColor(0, 1), c = Q.phaseColor(-1, 0);
+    function near(x, y) { return x.every(function (v, i) { return Math.abs(v - y[i]) < 1e-3; }); }
+    var ok = near(a, [1, 0.25, 0.25]) && near(b, [0.5, 0.933, 0.067]) && near(c, [0, 0.75, 0.75]);
+    return { ok: ok, info: 'red ' + a.map(function (v) { return v.toFixed(2); }) + ' · yellow-green ' + b.map(function (v) { return v.toFixed(2); }) + ' · cyan ' + c.map(function (v) { return v.toFixed(2); }) };
+  });
+  await T('URL hash round trip (and garbage is clamped)', function () {
+    var s = { setup: 'multi', lambda: 9.5, d: 30, a: 5, n: 5, sigma: 22, obs: true, view: 'real' }, r = Q.decodeHash('#' + Q.encodeHash(s));
+    var ok = Object.keys(s).every(function (k) { return r[k] === s[k]; });
+    var g = Q.decodeHash('#setup=double&lam=1&d=9999&a=x&obs=7&view=evil');
+    return { ok: ok && g.lambda === 6 && g.d === 80 && g.a === 8 && g.obs === false && g.view === 'phase' && Q.decodeHash('#setup=nope') === null, info: Q.encodeHash(s) };
+  });
+  await T('i18n: KO and EN have the same keys', function () {
+    var a = Object.keys(I18N.ko).sort(), b = Object.keys(I18N.en).sort(), miss = a.filter(function (k) { return b.indexOf(k) < 0; }).concat(b.filter(function (k) { return a.indexOf(k) < 0; }));
+    var used = Array.prototype.map.call(document.querySelectorAll('[data-i18n]'), function (e) { return e.dataset.i18n; }).filter(function (k) { return !(k in I18N.ko); });
+    return { ok: !miss.length && !used.length, info: a.length + ' keys' + (miss.length ? ', mismatch: ' + miss.join(',') : '') + (used.length ? ', undefined: ' + used.join(',') : '') };
+  });
+
+  // ---- GPU + full-size experiments (GPU if available, else CPU)
+  var tgl = null; try { var tc = document.createElement('canvas'); tgl = makeGl(tc); } catch (e) { tgl = null; }
+  await T('GPU engine = CPU reference (128×96, 400 steps)', function () {
+    if (!tgl) return { ok: false, info: 'no WebGL2 float support in this browser' };
+    var W2 = 128, H2 = 96, p = { N: 2, d: 16, a: 4, lambda: 8, sigma: 8, x0: 30, y0: 48, wallX: 56, wallT: 4, screenX: 110 };
+    var sc = Q.buildScene(p, W2, H2), M = Q.absorberMask(W2, H2, 12, Q.ALPHA, true);
+    var spec = { V: sc.V, M: M, wall: sc.wall, dt: 0.2, packet: { x0: 30, y0: 48, sigma: 8, lambda: 8 }, fluxX: 100 };
+    var g = new GpuEngine(tgl, W2, H2); g.reset(spec); g.step(400);
+    var c = new Q.CpuSim(W2, H2); c.dt = 0.2; c.setPotential(sc.V, M); c.initPacket(spec.packet); var fl = { x: 100, acc: new Float64Array(H2) }; c.step(400, fl);
+    var st = g.readState(), mx = 0, amp = 0, fa = g.readFlux(), fm = 0, fx = 0;
+    for (var i = 0; i < W2 * H2; i++) { mx = Math.max(mx, Math.abs(st[4 * i] - c.R[i]), Math.abs(st[4 * i + 1] - c.I[i])); amp = Math.max(amp, Math.abs(c.R[i]), Math.abs(c.I[i])); }
+    for (i = 0; i < H2; i++) { fm = Math.max(fm, Math.abs(fa[i] - fl.acc[i])); fx = Math.max(fx, Math.abs(fl.acc[i])); }
+    var e = mx / amp, ef = fm / fx;
+    return { ok: e < 1e-4 && ef < 1e-3, info: 'max |Δψ|/max|ψ| = ' + e.toExponential(2) + ', flux ' + ef.toExponential(2) };
+  });
+  var bigEngine = tgl ? new GpuEngine(tgl, W, H) : null;
+  function experiment(setup, opts) {
+    opts = opts || {};
+    var s = Object.assign({ setup: setup }, Q.DEFAULTS[setup]), p = Q.sceneParams(s, W, H), only = opts.only == null ? [-1] : opts.only, total = new Float64Array(H);
+    only.forEach(function (o) {
+      var sc = Q.buildScene(p, W, H, { only: o }), spec = { V: sc.V, M: M_ABS, wall: sc.wall, dt: 0.2, packet: { x0: p.x0, y0: p.y0, sigma: p.sigma, lambda: p.lambda }, fluxX: p.screenX }, acc;
+      if (bigEngine) { bigEngine.reset(spec); bigEngine.step(3400); acc = bigEngine.readFlux(); }
+      else { var c = new Q.CpuSim(W, H); c.setPotential(sc.V, M_ABS); c.initPacket(spec.packet); var fl = { x: p.screenX, acc: new Float64Array(H) }; c.step(3400, fl); acc = fl.acc; }
+      for (var y = 0; y < H; y++) total[y] += acc[y];
+    });
+    return { p: p, acc: total, sim: Q.normalizeMax(total) };
+  }
+  var dbl = null;
+  await T('Double slit: fringe spacing = L·tan(arcsin λ/d) within 3 %', function () {
+    dbl = experiment('double'); var fs = Q.fringeSpacing(dbl.sim, LO, HI, CEN), ft = Q.fringeTheory(dbl.p), e = Math.abs(fs.spacing / ft.exact - 1);
+    return { ok: e < 0.03, info: 'sim ' + fs.spacing.toFixed(2) + ' vs ' + ft.exact.toFixed(2) + ' (' + (e * 100).toFixed(2) + '%); small-angle λL/d = ' + ft.smallAngle.toFixed(2) };
+  });
+  await T('Double slit: simulated curve vs theory curves (r > 0.98)', function () {
+    var th = Q.theoryCurves(dbl.p, H), rH = Q.pearson(dbl.sim, th.hu, LO, HI), rF = Q.pearson(dbl.sim, th.fr, LO, HI), V = Q.visibility(dbl.sim, LO, HI, CEN, 80);
+    return { ok: rH > 0.98 && rF > 0.98 && V > 0.9, info: 'r(Huygens) = ' + rH.toFixed(4) + ', r(Fraunhofer) = ' + rF.toFixed(4) + ', visibility ' + V.toFixed(3) };
+  });
+  await T('Single slit: first minimum vs L·tan(arcsin λ/a) within 10 %', function () {
+    var r = experiment('single'), fm = Q.firstMinimum(r.sim, LO, HI, CEN), th = Q.firstMinTheory(r.p), e = Math.abs(fm / th - 1);
+    return { ok: e < 0.1, info: 'sim ' + fm.toFixed(2) + ' vs ' + th.toFixed(2) + ' (' + (e * 100).toFixed(1) + '%)' };
+  });
+  await T('Grating (N = 4): principal maxima spacing and near-field match', function () {
+    var r = experiment('multi'), fs = Q.fringeSpacing(r.sim, LO, HI, CEN, 0.4), ft = Q.fringeTheory(r.p), e = Math.abs(fs.spacing / ft.exact - 1);
+    var rH = Q.pearson(r.sim, Q.theoryCurves(r.p, H).hu, LO, HI);
+    return { ok: e < 0.05 && rH > 0.98, info: 'spacing ' + fs.spacing.toFixed(2) + ' vs ' + ft.exact.toFixed(2) + ' (' + (e * 100).toFixed(1) + '%), r(Huygens) = ' + rH.toFixed(4) };
+  });
+  await T('Which-path measured: fringes vanish (V < 0.1), one-slit branches add', function () {
+    var r = experiment('double', { only: [0, 1] }), V = Q.visibility(r.sim, LO, HI, CEN, 80);
+    var rH = Q.pearson(r.sim, Q.theoryCurves(r.p, H, true).hu, LO, HI);
+    var s = 0, y; for (y = 0; y < H; y++) s += r.acc[y]; var s2 = 0; for (y = 0; y < H; y++) s2 += dbl.acc[y];
+    return { ok: V < 0.1 && rH > 0.98 && Math.abs(s / s2 - 1) < 0.1, info: 'V = ' + V.toFixed(3) + ' (no measurement: ' + Q.visibility(dbl.sim, LO, HI, CEN, 80).toFixed(3) + '), r(incoherent Huygens) = ' + rH.toFixed(4) + ', P_screen ' + s.toFixed(3) + ' vs ' + s2.toFixed(3) };
+  });
+
+  var pass = results.filter(function (r) { return r.ok; }).length;
+  $('#testTitle').textContent = t('tTitle') + ': ' + pass + ' / ' + results.length;
+  document.title = 'Tests ' + pass + '/' + results.length;
+  console.log('TESTS ' + pass + '/' + results.length);
+}
+boot();
+</script>
+</body>
+</html>
