@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Quantum Slit Lab</title>
-<meta name="description" content="Fire quantum particles one at a time at a slit and watch an interference pattern build up, then compare the simulation with theory.">
+<title>Quantum Lab · 양자 실험실</title>
+<meta name="description" content="Five quantum experiments in the browser: double slit and electron diffraction solved from the Schrödinger equation, X-ray powder diffraction, DNA fibre diffraction (Photo 51) and the Compton effect, each compared with theory in numbers.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -16,37 +16,49 @@
 }
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--bg);color:var(--fg)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{font-family:'Noto Sans KR',system-ui,-apple-system,'Malgun Gothic','Apple SD Gothic Neo',sans-serif;font-size:14px;line-height:1.5;word-break:keep-all;overflow-wrap:break-word}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 
-/* ---------- top bar */
-header{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 18px;border-bottom:1px solid var(--line);background:#0a0e17}
-.brand{display:flex;flex-direction:column;min-width:0;margin-right:auto}
-.brand b{font-size:17px;letter-spacing:.14em;font-weight:700}
+/* ---------- header: brand + experiment tabs */
+header{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 22px;padding:12px 18px 0;border-bottom:1px solid var(--line);background:#0a0e17}
+.brand{display:flex;flex-direction:column;min-width:0;padding-bottom:12px}
+.brand b{font-size:17px;letter-spacing:.14em;font-weight:700;white-space:nowrap}
 .brand span{font-size:12px;color:var(--muted)}
-.bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.tabs{display:flex;flex-wrap:wrap;gap:2px;margin-right:auto}
+.tabs button{border:0;background:none;padding:8px 12px 11px;border-bottom:2px solid transparent;color:var(--muted);white-space:nowrap;display:flex;align-items:baseline;gap:6px}
+.tabs button small{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.tabs button:hover{color:var(--fg)}
+.tabs button[aria-selected="true"]{color:var(--fg);font-weight:700;border-bottom-color:var(--acc)}
+.tabs button[aria-selected="true"] small{color:var(--acc)}
+.hbar{display:flex;gap:8px;align-items:center;padding-bottom:10px}
+.lead{max-width:1760px;margin:0 auto;padding:10px 18px 0;color:var(--muted);font-size:13px}
+.lead b{color:var(--fg);font-weight:500}
+
 .btn{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:7px 13px;white-space:nowrap;transition:background .15s,border-color .15s}
 .btn:hover{border-color:#3a4763}
 .btn.primary{background:#14324a;border-color:#2c6d96;color:#d8f2ff;font-weight:700}
 .btn.primary:hover{background:#18405e}
 .btn[disabled]{opacity:.45;cursor:default}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:nowrap}
 .seg button{border:0;background:var(--panel);padding:7px 11px;white-space:nowrap}
 .seg button+button{border-left:1px solid var(--line)}
 .seg button[aria-pressed="true"]{background:#1b2a40;color:var(--acc);font-weight:700}
 .lbl{font-size:12px;color:var(--muted);white-space:nowrap}
 input[type=range]{accent-color:var(--acc);vertical-align:middle}
+select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 8px;max-width:100%}
 
-/* ---------- layout */
-main{display:grid;grid-template-columns:268px minmax(0,1fr) 292px;gap:14px;padding:14px 18px;max-width:1760px;margin:0 auto;align-items:start}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
-.panel h2{font-size:12px;letter-spacing:.12em;color:var(--muted);font-weight:700;margin:0 0 10px;text-transform:uppercase}
-.panel+.panel{margin-top:12px}
+/* ---------- layout: stage left, every setting on the right (as in Turing Lab) */
+main{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:16px;padding:12px 18px 18px;max-width:1760px;margin:0 auto;align-items:start}
 .col{min-width:0}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.panel h2{font-size:13px;color:var(--fg);font-weight:700;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.panel h2 .n{font-family:var(--mono);font-size:11px;color:var(--acc);border:1px solid #2c6d96;border-radius:5px;padding:0 5px}
+.panel+.panel{margin-top:12px}
+.side .xp{display:none}.side .xp.on{display:block}
 
-/* setup cards */
 .setups{display:grid;gap:6px}
 .setup{display:flex;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:8px 10px}
 .setup svg{flex:none}
@@ -54,13 +66,17 @@ main{display:grid;grid-template-columns:268px minmax(0,1fr) 292px;gap:14px;paddi
 .setup small{display:block;color:var(--muted);font-size:11.5px}
 .setup[aria-pressed="true"]{border-color:#2c6d96;background:#122236}
 .setup[aria-pressed="true"] b{color:var(--acc)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:6px 10px;white-space:nowrap}
+.presets button[aria-pressed="true"]{border-color:#2c6d96;background:#122236;color:var(--acc);font-weight:700}
 
-.ctl{margin:10px 0 0}
+.ctl{margin:12px 0 0}
 .ctl .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .ctl label{font-size:13px}
-.ctl output{font-family:var(--mono);font-size:12.5px;color:var(--acc)}
-.ctl input{width:100%;margin:4px 0;display:block}
+.ctl output{font-family:var(--mono);font-size:12.5px;color:var(--acc);white-space:nowrap}
+.ctl input[type=range]{width:100%;margin:4px 0;display:block}
 .ctl .help{font-size:11.5px;color:var(--dim)}
+.row{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 10px;align-items:center;margin-top:10px;font-size:13px}
 .switch{display:flex;align-items:center;gap:10px;margin-top:4px}
 .switch input{width:40px;height:22px;appearance:none;-webkit-appearance:none;background:#273147;border-radius:11px;position:relative;cursor:pointer;flex:none;transition:background .15s}
 .switch input::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#cfd7e6;top:3px;left:3px;transition:left .15s}
@@ -72,25 +88,27 @@ main{display:grid;grid-template-columns:268px minmax(0,1fr) 292px;gap:14px;paddi
 .formula .fn{font-family:'Noto Sans KR',system-ui,sans-serif;color:var(--muted);font-size:12px;display:block;margin-top:2px}
 .note{font-size:12px;color:var(--muted);margin:8px 0 0}
 
-/* stage */
-.stage{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#06090f;max-width:calc((100vh - 190px) * 4 / 3 + 210px);margin:0 auto}
+/* stage 1: Schrödinger grid (slit, electron) */
+.stage{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#06090f;max-width:calc((100vh - 220px) * 4 / 3 + 210px);margin:0 auto}
 .wave{position:relative;flex:1 1 auto;min-width:0;aspect-ratio:4/3}
 .wave canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-#cpuCanvas{image-rendering:auto}
 .det{flex:0 0 210px;position:relative;border-left:1px solid var(--line);background:#070a10}
 .det canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.status{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);padding:8px 4px 0;justify-content:center}
-.status span{white-space:nowrap}
-.status b{color:var(--fg);font-weight:600;font-family:var(--mono)}
-.guide{max-width:760px;margin:10px auto 0;font-size:12.5px;color:var(--muted);display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px 18px}
-.guide div{display:flex;gap:8px;align-items:flex-start}
-.guide i{flex:none;width:12px;height:12px;border-radius:3px;margin-top:4px}
-.legend{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;padding:8px 0 0;font-size:12px;color:var(--muted)}
-.legend button{border:0;background:none;padding:2px 4px;display:inline-flex;align-items:center;gap:6px;color:var(--muted);white-space:nowrap}
-.legend button[aria-pressed="false"]{opacity:.38}
-.legend i{display:inline-block;width:18px;height:3px;border-radius:2px}
+/* stage 2: view + plot (X-ray, DNA, Compton) */
+.stage2{display:none;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#06090f;max-width:calc((100vh - 220px) * 2.15);margin:0 auto}
+.stage2.on{display:grid}
+.stage2 .view{position:relative;aspect-ratio:1/1;min-width:0}
+.stage2 .plot{position:relative;min-width:0;border-left:1px solid var(--line);background:#070a10}
+.stage2 canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .msg{position:absolute;left:50%;top:14px;transform:translateX(-50%);background:rgba(10,15,25,.86);border:1px solid var(--line);border-radius:999px;padding:6px 14px;font-size:13px;pointer-events:none;opacity:0;transition:opacity .25s;width:max-content;max-width:calc(100% - 20px);text-align:center;line-height:1.4}
 .msg.on{opacity:1}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:center;padding:8px 0 0;font-size:12px;color:var(--muted)}
+.legend button,.legend span.k{border:0;background:none;padding:2px 4px;display:inline-flex;align-items:center;gap:6px;color:var(--muted);white-space:nowrap}
+.legend button[aria-pressed="false"]{opacity:.38}
+.legend i{display:inline-block;width:18px;height:3px;border-radius:2px}
+.guide{max-width:820px;margin:10px auto 0;font-size:12.5px;color:var(--muted);display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:6px 18px}
+.guide div{display:flex;gap:8px;align-items:flex-start}
+.guide i{flex:none;width:12px;height:12px;border-radius:3px;margin-top:4px}
 
 /* metrics */
 .metric{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:8px 0;border-top:1px solid var(--line)}
@@ -101,10 +119,22 @@ main{display:grid;grid-template-columns:268px minmax(0,1fr) 292px;gap:14px;paddi
 .metric .v small{display:block;font-size:11.5px;color:var(--muted)}
 .good{color:var(--ok)}.bad{color:var(--warn)}
 .big{font-size:20px;font-weight:600}
-.particles{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.particles .seg button{padding:6px 9px}
+table.tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+table.tbl th{font-weight:500;color:var(--muted);text-align:right;padding:3px 4px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.tbl td{font-family:var(--mono);text-align:right;padding:3px 4px;border-bottom:1px solid #1a2132;white-space:nowrap}
+table.tbl th:first-child,table.tbl td:first-child{text-align:left}
+table.tbl tr.abs td{color:var(--dim)}
+.scan{width:100%;height:150px;display:block;margin-top:8px;background:#0b101a;border:1px solid var(--line);border-radius:8px}
 
-/* learn overlay */
+/* ---------- transport bar (bottom, as in Turing Lab) */
+.transport{position:sticky;bottom:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:10px 18px;border-top:1px solid var(--line);background:rgba(10,14,23,.96);backdrop-filter:blur(6px)}
+.transport .sep{width:1px;height:24px;background:var(--line)}
+.transport .status{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:12px;color:var(--muted);margin-left:auto;justify-content:flex-end}
+.transport .status span{white-space:nowrap}
+.transport .status b{color:var(--fg);font-weight:600;font-family:var(--mono)}
+.grp{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+
+/* learn overlay + tests */
 #learn,#testOut{position:fixed;inset:0;background:rgba(4,6,10,.78);display:none;align-items:center;justify-content:center;z-index:30;padding:16px}
 #learn.on,#testOut.on{display:flex}
 .card{background:var(--panel);border:1px solid #2b3650;border-radius:14px;max-width:640px;width:100%;padding:22px 24px;max-height:90vh;overflow:auto}
@@ -114,107 +144,62 @@ main{display:grid;grid-template-columns:268px minmax(0,1fr) 292px;gap:14px;paddi
 .card .eq{font-family:var(--mono);background:#0b101a;border-radius:8px;padding:8px 10px;color:var(--fr);overflow-x:auto}
 .card .nav{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:8px}
 .dots{display:flex;gap:6px}.dots i{width:8px;height:8px;border-radius:50%;background:#2b3650}.dots i.on{background:var(--acc)}
-#testOut .card{max-width:820px;font-size:13px}
+#testOut .card{max-width:860px;font-size:13px}
 #testOut table{border-collapse:collapse;width:100%}
 #testOut td{border-top:1px solid var(--line);padding:5px 6px;vertical-align:top}
 #testOut td:nth-child(3){font-family:var(--mono);font-size:12px;color:var(--muted)}
-
-footer{color:var(--dim);font-size:12px;text-align:center;padding:4px 18px 22px}
+footer{color:var(--dim);font-size:12px;text-align:center;padding:4px 18px 16px;display:flex;flex-wrap:wrap;justify-content:center;gap:2px 6px}
 footer a{color:var(--muted)}
 
 /* ---------- responsive */
-@media (max-width:1280px){
-  main{grid-template-columns:260px minmax(0,1fr)}
-  .metrics{grid-column:2}
-  .stage{max-width:none}
+@media (max-width:1180px){
+  main{grid-template-columns:minmax(0,1fr) 330px}
+  .tabs button{padding:8px 9px 11px}
 }
-@media (max-width:860px){
-  header{padding:10px 12px}
-  main{grid-template-columns:minmax(0,1fr);padding:10px 10px}
-  .metrics{grid-column:auto}
-  .stagecol{position:sticky;top:0;z-index:5;background:var(--bg);padding-bottom:6px;margin:0 -10px;padding-left:10px;padding-right:10px}
+@media (max-width:900px){
+  header{padding:8px 12px 0;gap:4px 12px}
+  .brand{padding-bottom:4px}.brand b{font-size:15px}
+  .tabs{order:3;width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:0}
+  .tabs::-webkit-scrollbar{display:none}
+  .hbar{margin-left:auto;padding-bottom:4px}
+  .lead{padding:8px 12px 0;font-size:12.5px}
+  main{grid-template-columns:minmax(0,1fr);padding:10px 10px 14px}
+  .stage,.stage2{max-width:none}
   .det{flex-basis:30%}
-  .order1{order:1}.order2{order:2}.order3{order:3}
-  main{display:flex;flex-direction:column}
-  main>.col{width:100%}
-  .status{font-size:11px;gap:2px 10px}
-  header{gap:8px}
-  .brand b{font-size:15px}
-  .bar{gap:6px}
+  .stage2{grid-template-columns:minmax(0,1fr)}
+  .stage2 .plot{border-left:0;border-top:1px solid var(--line);aspect-ratio:1/1.05}
+  .transport{padding:8px 10px;gap:6px 8px}
+  .transport .status,.transport .sep{display:none}
   .btn{padding:6px 10px;font-size:13px}
   .seg button{padding:6px 9px;font-size:13px}
   .spdl{display:none}
   #speed{width:70px!important}
   .msg{font-size:12px;top:8px}
 }
-@media (max-width:860px) and (max-height:760px){ .stagecol{position:static} }
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><b>QUANTUM SLIT LAB</b><span data-i18n="tagline">입자를 하나씩 쏘면, 점이 모여 간섭무늬가 된다</span></div>
-  <div class="bar">
-    <button class="btn primary" id="fireBtn" data-i18n="fire">▶ 발사</button>
-    <button class="btn" id="pauseBtn" data-i18n="pause">❚❚ 일시정지</button>
-    <button class="btn" id="resetBtn" data-i18n="reset">⟲ 초기화</button>
-    <span class="lbl spdl" data-i18n="speed">속도</span><input type="range" id="speed" min="5" max="120" value="40" style="width:96px" aria-label="speed">
-  </div>
-  <div class="bar">
-    <div class="seg" id="viewSeg" role="group" aria-label="view">
-      <button data-view="phase" aria-pressed="true" data-i18n="vPhase">위상색</button>
-      <button data-view="prob" aria-pressed="false" data-i18n="vProb">확률</button>
-      <button data-view="real" aria-pressed="false" data-i18n="vReal">실수부</button>
-    </div>
-    <button class="btn" id="learnBtn" data-i18n="learn">? 왜 무늬가 생길까</button>
+  <div class="brand"><b>QUANTUM LAB</b><span data-i18n="tagline">빛과 전자가 파동이면서 입자임을 보여 주는 다섯 실험</span></div>
+  <nav class="tabs" id="tabs" role="tablist">
+    <button role="tab" data-exp="slit" aria-selected="true"><small>1</small><span data-i18n="tabSlit">이중 슬릿</span></button>
+    <button role="tab" data-exp="electron" aria-selected="false"><small>2</small><span data-i18n="tabElectron">전자선 회절</span></button>
+    <button role="tab" data-exp="xray" aria-selected="false"><small>3</small><span data-i18n="tabXray">X선 회절</span></button>
+    <button role="tab" data-exp="dna" aria-selected="false"><small>4</small><span data-i18n="tabDna">DNA 회절</span></button>
+    <button role="tab" data-exp="compton" aria-selected="false"><small>5</small><span data-i18n="tabCompton">콤프턴 효과</span></button>
+  </nav>
+  <div class="hbar">
+    <button class="btn" id="learnBtn" data-i18n="learn">? 원리</button>
     <div class="seg" id="langSeg" role="group" aria-label="language">
       <button data-lang="ko" aria-pressed="true">KO</button><button data-lang="en" aria-pressed="false">EN</button>
     </div>
   </div>
 </header>
+<p class="lead" id="lead"></p>
 
 <main>
-  <!-- left: experiment -->
-  <div class="col order3">
-    <section class="panel">
-      <h2 data-i18n="hSetup">실험</h2>
-      <div class="setups" id="setups">
-        <button class="setup" data-setup="single" aria-pressed="false">
-          <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v10M14 18v10" stroke="#cfd7e6" stroke-width="3"/></svg>
-          <span><b data-i18n="sSingle">단일 슬릿</b><small data-i18n="sSingleD">회절: 구멍 하나로도 퍼진다</small></span></button>
-        <button class="setup" data-setup="double" aria-pressed="true">
-          <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v6M14 12v6M14 22v6" stroke="#cfd7e6" stroke-width="3"/></svg>
-          <span><b data-i18n="sDouble">이중 슬릿</b><small data-i18n="sDoubleD">간섭: 두 길이 겹친다</small></span></button>
-        <button class="setup" data-setup="multi" aria-pressed="false">
-          <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v3M14 8v3M14 14v3M14 20v3M14 26v2" stroke="#cfd7e6" stroke-width="3"/></svg>
-          <span><b data-i18n="sMulti">다중 슬릿 (격자)</b><small data-i18n="sMultiD">N개의 길: 밝은 줄이 날카로워진다</small></span></button>
-      </div>
-      <div class="ctl"><div class="top"><label for="lam" data-i18n="cLam">파장 λ</label><output id="lamOut"></output></div>
-        <input type="range" id="lam" min="6" max="16" step="0.5"><div class="help" data-i18n="cLamH">입자의 운동량 p = h/λ — 파장이 길수록 무늬가 넓다</div></div>
-      <div class="ctl" id="ctlD"><div class="top"><label for="d" data-i18n="cD">슬릿 간격 d</label><output id="dOut"></output></div>
-        <input type="range" id="d" min="16" max="80" step="2"></div>
-      <div class="ctl"><div class="top"><label for="a" data-i18n="cA">슬릿 폭 a</label><output id="aOut"></output></div>
-        <input type="range" id="a" min="4" max="32" step="1"></div>
-      <div class="ctl" id="ctlN"><div class="top"><label for="n" data-i18n="cN">슬릿 수 N</label><output id="nOut"></output></div>
-        <input type="range" id="n" min="3" max="5" step="1"></div>
-      <div class="ctl"><div class="top"><label for="sig" data-i18n="cSig">파속 폭 σ</label><output id="sigOut"></output></div>
-        <input type="range" id="sig" min="14" max="30" step="1"><div class="help" data-i18n="cSigH">입자가 처음 있을 법한 범위 (가우시안)</div></div>
-    </section>
-
-    <section class="panel">
-      <h2 data-i18n="hObs">관측</h2>
-      <div class="switch"><input type="checkbox" id="obs" role="switch"><label for="obs" data-i18n="obsLabel">어느 슬릿을 지났는지 측정하기</label></div>
-      <p class="note" id="obsNote" data-i18n="obsNote">켜면 매번 입자가 지난 슬릿 하나가 기록됩니다. 경로를 알게 되는 순간 간섭이 사라지는지 확인해 보세요.</p>
-    </section>
-
-    <section class="panel">
-      <h2 data-i18n="hTheory">이론식 (프라운호퍼)</h2>
-      <div class="formula" id="formula"></div>
-      <p class="note" id="fresnelNote"></p>
-    </section>
-  </div>
-
-  <!-- centre: stage -->
-  <div class="col stagecol order1">
+  <div class="col stagecol">
+    <!-- stage 1: Schrödinger grid -->
     <div class="stage" id="stage">
       <div class="wave" id="wave">
         <canvas id="glCanvas" aria-label="wave function"></canvas>
@@ -222,39 +207,190 @@ footer a{color:var(--muted)}
         <canvas id="ovCanvas"></canvas>
         <div class="msg" id="msg"></div>
       </div>
-      <div class="det" id="det"><canvas id="detCanvas" aria-label="detector screen"></canvas></div>
+      <div class="det" id="det"><canvas id="detCanvas" aria-label="detector"></canvas></div>
+    </div>
+    <!-- stage 2: view + plot -->
+    <div class="stage2" id="stage2">
+      <div class="view" id="view2"><canvas id="c2a"></canvas><div class="msg" id="msg2"></div></div>
+      <div class="plot" id="plot2"><canvas id="c2b"></canvas></div>
     </div>
     <div class="legend" id="legend">
-      <button data-layer="sim" aria-pressed="true"><i style="background:var(--sim)"></i><span data-i18n="lgSim">시뮬레이션 (파동)</span></button>
-      <button data-layer="hist" aria-pressed="true"><i style="background:var(--dot)"></i><span data-i18n="lgHist">점 히스토그램</span></button>
-      <button data-layer="fr" aria-pressed="true"><i style="background:var(--fr)"></i><span data-i18n="lgFr">프라운호퍼</span></button>
-      <button data-layer="hu" aria-pressed="true"><i style="background:var(--hu)"></i><span data-i18n="lgHu">하위헌스 (근거리)</span></button>
+      <button data-layer="sim" aria-pressed="true"><i style="background:var(--sim)"></i><span id="lg_sim"></span></button>
+      <button data-layer="hist" aria-pressed="true"><i style="background:var(--dot)"></i><span id="lg_hist"></span></button>
+      <button data-layer="fr" aria-pressed="true"><i style="background:var(--fr)"></i><span id="lg_fr"></span></button>
+      <button data-layer="hu" aria-pressed="true"><i style="background:var(--hu)"></i><span id="lg_hu"></span></button>
     </div>
-    <div class="status" id="status"></div>
     <div class="guide" id="guide"></div>
   </div>
 
-  <!-- right: measurements -->
-  <div class="col metrics order2">
-    <section class="panel">
-      <h2 data-i18n="hParticles">입자 모드</h2>
-      <div class="particles">
-        <button class="btn primary" id="partBtn" data-i18n="partStart">● 입자 쏘기</button>
-        <div class="seg" id="rateSeg" role="group" aria-label="rate">
-          <button data-rate="20" aria-pressed="true">20/s</button><button data-rate="200" aria-pressed="false">200/s</button><button data-rate="2000" aria-pressed="false">2000/s</button>
+  <aside class="col side" id="side">
+    <!-- ===== 1 slit ===== -->
+    <div class="xp" data-exp="slit">
+      <section class="panel">
+        <h2><span class="n">1</span><span data-i18n="hSetup">실험 장치</span></h2>
+        <div class="setups" id="setups">
+          <button class="setup" data-setup="single" aria-pressed="false">
+            <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v10M14 18v10" stroke="#cfd7e6" stroke-width="3"/></svg>
+            <span><b data-i18n="sSingle">단일 슬릿</b><small data-i18n="sSingleD">회절: 구멍 하나로도 퍼진다</small></span></button>
+          <button class="setup" data-setup="double" aria-pressed="true">
+            <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v6M14 12v6M14 22v6" stroke="#cfd7e6" stroke-width="3"/></svg>
+            <span><b data-i18n="sDouble">이중 슬릿</b><small data-i18n="sDoubleD">간섭: 두 길이 겹친다</small></span></button>
+          <button class="setup" data-setup="multi" aria-pressed="false">
+            <svg width="30" height="30" viewBox="0 0 30 30"><path d="M14 2v3M14 8v3M14 14v3M14 20v3M14 26v2" stroke="#cfd7e6" stroke-width="3"/></svg>
+            <span><b data-i18n="sMulti">다중 슬릿 (격자)</b><small data-i18n="sMultiD">N개의 길: 밝은 줄이 날카로워진다</small></span></button>
         </div>
-      </div>
-      <div class="metric" style="margin-top:10px"><div class="k"><span data-i18n="mDots">검출된 입자</span><small data-i18n="mDotsS">점 하나 = 입자 하나</small></div><div class="v"><span class="big" id="dotCount">0</span></div></div>
-      <div class="metric"><div class="k"><span data-i18n="mTV">점 분포 ↔ 파동 분포 차이</span><small data-i18n="mTVS">총변동거리, 점이 많을수록 0에 가까워짐</small></div><div class="v" id="tvVal">—</div></div>
-      <p class="note" data-i18n="partNote">각 입자는 한 점에만 나타납니다. 위치는 파동이 스크린에 남긴 확률 흐름에 비례해 무작위로 정해집니다 (보른 규칙).</p>
-    </section>
-    <section class="panel">
-      <h2 data-i18n="hCompare">시뮬레이션 vs 이론</h2>
-      <div id="metrics"></div>
-    </section>
-  </div>
+        <div class="ctl"><div class="top"><label for="lam" data-i18n="cLam">파장 λ</label><output id="lamOut"></output></div>
+          <input type="range" id="lam" min="6" max="16" step="0.5"><div class="help" data-i18n="cLamH"></div></div>
+        <div class="ctl" id="ctlD"><div class="top"><label for="d" data-i18n="cD">슬릿 간격 d</label><output id="dOut"></output></div>
+          <input type="range" id="d" min="16" max="80" step="2"></div>
+        <div class="ctl"><div class="top"><label for="a" data-i18n="cA">슬릿 폭 a</label><output id="aOut"></output></div>
+          <input type="range" id="a" min="4" max="32" step="1"></div>
+        <div class="ctl" id="ctlN"><div class="top"><label for="n" data-i18n="cN">슬릿 수 N</label><output id="nOut"></output></div>
+          <input type="range" id="n" min="3" max="5" step="1"></div>
+        <div class="ctl"><div class="top"><label for="sig" data-i18n="cSig">파속 폭 σ</label><output id="sigOut"></output></div>
+          <input type="range" id="sig" min="14" max="30" step="1"><div class="help" data-i18n="cSigH"></div></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">2</span><span data-i18n="hObs">관측</span></h2>
+        <div class="switch"><input type="checkbox" id="obs" role="switch"><label for="obs" data-i18n="obsLabel">어느 슬릿을 지났는지 측정하기</label></div>
+        <p class="note" id="obsNote"></p>
+      </section>
+      <section class="panel">
+        <h2><span class="n">3</span><span data-i18n="hParticles">입자 모드</span></h2>
+        <div class="metric"><div class="k"><span data-i18n="mDots">검출된 입자</span><small data-i18n="mDotsS"></small></div><div class="v"><span class="big" id="dotCount">0</span></div></div>
+        <div class="metric"><div class="k"><span data-i18n="mTV"></span><small data-i18n="mTVS"></small></div><div class="v" id="tvVal">—</div></div>
+        <p class="note" data-i18n="partNote"></p>
+      </section>
+      <section class="panel">
+        <h2><span class="n">4</span><span data-i18n="hTheory">이론식</span></h2>
+        <div class="formula" id="formula"></div>
+        <p class="note" id="fresnelNote"></p>
+      </section>
+      <section class="panel">
+        <h2><span class="n">5</span><span data-i18n="hCompare">시뮬레이션 vs 이론</span></h2>
+        <div id="metrics"></div>
+      </section>
+    </div>
+    <!-- ===== 2 electron ===== -->
+    <div class="xp" data-exp="electron">
+      <section class="panel">
+        <h2><span class="n">1</span><span data-i18n="hSetup">실험 장치</span></h2>
+        <div class="presets" id="elPresets">
+          <button data-e="54" data-i18n="elP54">54 eV (데이비슨–거머)</button><button data-e="30" data-i18n="elP30">30 eV</button><button data-e="100" data-i18n="elP100">100 eV</button>
+        </div>
+        <div class="ctl"><div class="top"><label for="elE" data-i18n="elE">가속 전압 V</label><output id="elEOut"></output></div>
+          <input type="range" id="elE" min="20" max="120" step="1"><div class="help" data-i18n="elEH"></div></div>
+        <div class="row"><span data-i18n="elCrystal">결정</span><span class="note" style="margin:0" data-i18n="elCrystalV"></span></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">2</span><span data-i18n="hScan">에너지 스캔</span></h2>
+        <button class="btn" id="elScanBtn" data-i18n="elScan">에너지 스캔 시작 (30 → 90 eV)</button>
+        <canvas class="scan" id="elScan"></canvas>
+        <p class="note" id="elScanNote" data-i18n="elScanNote"></p>
+      </section>
+      <section class="panel">
+        <h2><span class="n">3</span><span data-i18n="hTheory">이론식</span></h2>
+        <div class="formula" id="elFormula"></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">4</span><span data-i18n="hCompare">시뮬레이션 vs 이론</span></h2>
+        <div id="elMetrics"></div>
+      </section>
+    </div>
+    <!-- ===== 3 X-ray ===== -->
+    <div class="xp" data-exp="xray">
+      <section class="panel">
+        <h2><span class="n">1</span><span data-i18n="hSample">시료</span></h2>
+        <div class="presets" id="xrCrystals">
+          <button data-c="NaCl">NaCl</button><button data-c="KCl">KCl</button><button data-c="Si">Si</button><button data-c="Cu">Cu</button><button data-c="CsCl">CsCl</button>
+        </div>
+        <p class="note" id="xrCrystalNote"></p>
+        <div class="ctl"><div class="top"><label for="xrR" data-i18n="xrSize">결정립 지름</label><output id="xrROut"></output></div>
+          <input type="range" id="xrR" min="30" max="80" step="2"><div class="help" data-i18n="xrSizeH"></div></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">2</span><span data-i18n="hSource">X선관</span></h2>
+        <div class="presets" id="xrTubes"><button data-t="Cu">Cu Kα 1.5406 Å</button><button data-t="Mo">Mo Kα 0.7107 Å</button><button data-t="Co">Co Kα 1.7890 Å</button></div>
+        <p class="note" data-i18n="xrTubeNote"></p>
+      </section>
+      <section class="panel">
+        <h2><span class="n">3</span><span data-i18n="hTheory">이론식</span></h2>
+        <div class="formula" id="xrFormula"></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">4</span><span data-i18n="hCompare">시뮬레이션 vs 이론</span></h2>
+        <div id="xrMetrics"></div>
+      </section>
+    </div>
+    <!-- ===== 4 DNA ===== -->
+    <div class="xp" data-exp="dna">
+      <section class="panel">
+        <h2><span class="n">1</span><span data-i18n="hModel">분자 모형</span></h2>
+        <div class="presets" id="dnPresets">
+          <button data-p="B" data-i18n="dnB">B형 (사진 51)</button><button data-p="A" data-i18n="dnA">A형</button><button data-p="single" data-i18n="dnSingle">한 가닥</button><button data-p="even" data-i18n="dnEven">홈 크기 같음</button>
+        </div>
+        <div class="ctl"><div class="top"><label for="dnP" data-i18n="dnPitch">나선 피치 P</label><output id="dnPOut"></output></div><input type="range" id="dnP" min="26" max="40" step="0.2"></div>
+        <div class="ctl"><div class="top"><label for="dnBp" data-i18n="dnBp">한 바퀴당 염기쌍</label><output id="dnBpOut"></output></div><input type="range" id="dnBp" min="9" max="12" step="1"></div>
+        <div class="ctl"><div class="top"><label for="dnR" data-i18n="dnR">인산 반지름 r</label><output id="dnROut"></output></div><input type="range" id="dnR" min="6" max="12" step="0.1"></div>
+        <div class="ctl"><div class="top"><label for="dnOff" data-i18n="dnOff">두 가닥 사이 (작은 홈)</label><output id="dnOffOut"></output></div><input type="range" id="dnOff" min="0.25" max="0.5" step="0.005"><div class="help" data-i18n="dnOffH"></div></div>
+        <div class="switch" style="margin-top:12px"><input type="checkbox" id="dnTwo" role="switch"><label for="dnTwo" data-i18n="dnTwo">이중 나선 (두 가닥)</label></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">2</span><span data-i18n="hTheory">이론식</span></h2>
+        <div class="formula" id="dnFormula"></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">3</span><span data-i18n="hCompare">시뮬레이션 vs 이론</span></h2>
+        <div id="dnMetrics"></div>
+      </section>
+    </div>
+    <!-- ===== 5 Compton ===== -->
+    <div class="xp" data-exp="compton">
+      <section class="panel">
+        <h2><span class="n">1</span><span data-i18n="hSource">광원</span></h2>
+        <div class="presets" id="cpSources"><button data-s="Mo">Mo Kα 17.4 keV</button><button data-s="Ag">Ag Kα 22.1 keV</button><button data-s="Am">²⁴¹Am 59.5 keV</button><button data-s="Cs">¹³⁷Cs 662 keV</button></div>
+        <div class="ctl"><div class="top"><label data-i18n="cpTarget">표적</label></div><div class="presets" id="cpTargets" style="margin-top:6px"><button data-t="C" data-i18n="cpC">흑연 (C)</button><button data-t="Al" data-i18n="cpAl">알루미늄</button><button data-t="free" data-i18n="cpFree">정지한 자유 전자</button></div></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">2</span><span data-i18n="hDetector">검출기</span></h2>
+        <div class="ctl"><div class="top"><label for="cpTh" data-i18n="cpTh">산란각 θ</label><output id="cpThOut"></output></div><input type="range" id="cpTh" min="10" max="170" step="5"><div class="help" data-i18n="cpThH"></div></div>
+        <div class="ctl"><div class="top"><label for="cpRes" data-i18n="cpRes">분광기 분해능 σ</label><output id="cpResOut"></output></div><input type="range" id="cpRes" min="0.2" max="4" step="0.1"><div class="help" data-i18n="cpResH"></div></div>
+        <div class="ctl"><div class="top"><label for="cpN" data-i18n="cpN">한 번 측정할 광자 수</label><output id="cpNOut"></output></div><input type="range" id="cpN" min="1000" max="20000" step="1000"></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">3</span><span data-i18n="hTheory">이론식</span></h2>
+        <div class="formula" id="cpFormula"></div>
+      </section>
+      <section class="panel">
+        <h2><span class="n">4</span><span data-i18n="hCompare">시뮬레이션 vs 이론</span></h2>
+        <div id="cpMetrics"></div>
+      </section>
+    </div>
+  </aside>
 </main>
-<footer><span data-i18n="foot">2차원 시간의존 슈뢰딩거 방정식 · ħ = m = 1, 격자 간격 1 · Visscher 엇갈림 적분 · 4차 라플라시안</span> · <a href="?test=1" id="testLink" data-i18n="runTests">단위 테스트 (?test=1)</a></footer>
+<footer><span id="foot"></span><a href="?test=1" id="testLink" data-i18n="runTests">단위 테스트 (?test=1)</a></footer>
+
+<div class="transport" id="transport">
+  <div class="grp">
+    <button class="btn primary" id="fireBtn">▶</button>
+    <button class="btn" id="pauseBtn" data-i18n="pause">❚❚ 일시정지</button>
+    <button class="btn" id="resetBtn" data-i18n="reset">⟲ 초기화</button>
+    <span class="lbl spdl" data-i18n="speed">속도</span><input type="range" id="speed" min="5" max="120" value="40" style="width:90px" aria-label="speed">
+  </div>
+  <span class="sep"></span>
+  <div class="grp" id="partGrp">
+    <button class="btn primary" id="partBtn">●</button>
+    <div class="seg" id="rateSeg" role="group" aria-label="rate">
+      <button data-rate="20" aria-pressed="true">20/s</button><button data-rate="200" aria-pressed="false">200/s</button><button data-rate="2000" aria-pressed="false">2000/s</button>
+    </div>
+  </div>
+  <div class="seg" id="viewSeg" role="group" aria-label="view">
+    <button data-view="phase" aria-pressed="true" data-i18n="vPhase">위상색</button>
+    <button data-view="prob" aria-pressed="false" data-i18n="vProb">확률</button>
+    <button data-view="real" aria-pressed="false" data-i18n="vReal">실수부</button>
+  </div>
+  <div class="status" id="status"></div>
+</div>
 
 <div id="learn" role="dialog" aria-modal="true" aria-labelledby="learnTitle"><div class="card">
   <div class="step" id="learnStep"></div><h3 id="learnTitle"></h3><div id="learnBody"></div>
@@ -264,7 +400,7 @@ footer a{color:var(--muted)}
 <div id="testOut"><div class="card"><h3 id="testTitle">Tests</h3><table id="testTable"></table><div class="nav"><span></span><button class="btn" id="testClose" data-i18n="close">닫기</button></div></div></div>
 
 <!-- ==================================================================== -->
-<!-- Physics core: no DOM, also runs in node (vm.runInThisContext)          -->
+<!-- Physics core 1: Schrödinger grid, slits (no DOM; runs in node)        -->
 <!-- ==================================================================== -->
 <script id="core">
 var QSL = (function () {
@@ -308,13 +444,13 @@ var QSL = (function () {
   CpuSim.prototype.setPotential = function (V, M) {
     for (var i = 0; i < V.length; i++) { this.V[i] = V[i]; if (M) this.M[i] = M[i]; }
   };
-  // ψ0 = exp(−|r−r0|²/(4σ²)) · exp(i k·r), normalised so Σ|ψ|² = 1
+  // ψ0 = exp(−Δx²/(4σ²) − Δy²/(4σy²)) · exp(i k·r), normalised so Σ|ψ|² = 1
   CpuSim.prototype.initPacket = function (p) {
     var W = this.W, H = this.H, k = 2 * Math.PI / p.lambda, ang = p.angle || 0;
-    var kx = k * Math.cos(ang), ky = k * Math.sin(ang), s2 = 4 * p.sigma * p.sigma, sum = 0;
+    var kx = k * Math.cos(ang), ky = k * Math.sin(ang), s2 = 4 * p.sigma * p.sigma, s2y = 4 * Math.pow(p.sigmaY || p.sigma, 2), sum = 0;
     for (var y = 0; y < H; y++) for (var x = 0; x < W; x++) {
       var i = y * W + x, dx = x + 0.5 - p.x0, dy = y + 0.5 - p.y0;   // cell centre = index + 0.5
-      var amp = this.M[i] > 0 && this.V[i] === 0 ? Math.exp(-(dx * dx + dy * dy) / s2) : 0, ph = kx * x + ky * y;
+      var amp = this.M[i] > 0 && this.V[i] === 0 ? Math.exp(-dx * dx / s2 - dy * dy / s2y) : 0, ph = kx * x + ky * y;
       this.R[i] = amp * Math.cos(ph); this.I[i] = amp * Math.sin(ph); sum += amp * amp;
     }
     var c = 1 / Math.sqrt(sum), n = W * H, dt = this.dt;
@@ -559,6 +695,393 @@ if (typeof module !== 'undefined') module.exports = QSL;
 </script>
 
 <!-- ==================================================================== -->
+<!-- Physics core 2: electron diffraction, X-ray, DNA, Compton (no DOM)    -->
+<!-- ==================================================================== -->
+<script id="core2">
+var QX = (function () {
+  'use strict';
+  /* ---------------- constants (CODATA 2018) ---------------- */
+  var HC = 12.398419843;          // keV·Å  (E·λ = hc)
+  var LAMBDA_C = 0.02426310239;   // Å, Compton wavelength h/(m_e c)
+  var MEC2 = 510.99895;           // keV
+  var AU_P = 1 / 137.035999;      // 1 atomic unit of momentum in units of m_e c
+  var D2R = Math.PI / 180;
+
+  // electron de Broglie wavelength (Å) after acceleration through V volts, with the small relativistic term
+  function electronLambda(V) { return 12.26426 / Math.sqrt(V * (1 + 0.978476e-6 * V)); }
+
+  /* ---------------- atomic form factors: Cromer–Mann (International Tables Vol. C, 6.1.1.4) ----------------
+     f(s) = Σ a_i exp(−b_i s²) + c,  s = sinθ/λ (Å⁻¹) */
+  var CM = {
+    C: [2.31, 20.8439, 1.02, 10.2075, 1.5886, 0.5687, 0.865, 51.6512, 0.2156],
+    Al: [6.4202, 3.0387, 1.9002, 0.7426, 1.5936, 31.5472, 1.9646, 85.0886, 1.1151],
+    Si: [6.2915, 2.4386, 3.0353, 32.3337, 1.9891, 0.6785, 1.541, 81.6937, 1.1407],
+    Cu: [13.338, 3.5828, 7.1676, 0.247, 5.6158, 11.3966, 1.6735, 64.8126, 1.191],
+    Na1: [3.2565, 2.6671, 3.9362, 6.1153, 1.3998, 0.2001, 1.0032, 14.039, 0.404],
+    Cl1: [18.2915, 0.0066, 7.2084, 1.1717, 6.5337, 19.5424, 2.3386, 60.4486, -16.378],
+    K1: [7.9578, 12.6331, 7.4917, 0.7674, 6.359, -0.002, 1.1915, 31.9128, -4.9978],
+    Cs1: [20.3524, 3.552, 19.1278, 0.3086, 10.2821, 23.7128, 0.9615, 59.4565, 3.2791]
+  };
+  function formFactor(el, s) {
+    var c = CM[el], s2 = s * s;
+    return c[0] * Math.exp(-c[1] * s2) + c[2] * Math.exp(-c[3] * s2) + c[4] * Math.exp(-c[5] * s2) + c[6] * Math.exp(-c[7] * s2) + c[8];
+  }
+
+  /* ---------------- radix-2 complex FFT (in place) ---------------- */
+  function fft(re, im, inv) {
+    var n = re.length, i, j = 0, k, m;
+    for (i = 1; i < n; i++) { m = n >> 1; while (j & m) { j ^= m; m >>= 1; } j |= m; if (i < j) { k = re[i]; re[i] = re[j]; re[j] = k; k = im[i]; im[i] = im[j]; im[j] = k; } }
+    for (var len = 2; len <= n; len <<= 1) {
+      var ang = (inv ? 2 : -2) * Math.PI / len, wr = Math.cos(ang), wi = Math.sin(ang), h = len >> 1;
+      for (i = 0; i < n; i += len) {
+        var cr = 1, ci = 0;
+        for (k = 0; k < h; k++) {
+          var a = i + k, b = a + h, tr = re[b] * cr - im[b] * ci, ti = re[b] * ci + im[b] * cr;
+          re[b] = re[a] - tr; im[b] = im[a] - ti; re[a] += tr; im[a] += ti;
+          var nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr;
+        }
+      }
+    }
+  }
+
+  /* =====================================================================
+     ELECTRON DIFFRACTION (Davisson–Germer) on the 2-D Schrödinger grid
+     ===================================================================== */
+  var EL = { D: 12, C: 12, LAYERS: 4, RA: 1.5, V0: 3, XS: 300, SX: 14, SY: 40, D_NI: 2.15 };
+  EL.SCALE = EL.D_NI / EL.D;                  // Å per grid cell (surface row spacing of Ni(111) = 2.15 Å = 12 cells)
+  var EL_LIMITS = { E: [20, 120] };
+  function electronParams(s, W, H) {
+    var lamA = electronLambda(s.E), lam = lamA / EL.SCALE;
+    return { E: s.E, lamA: lamA, lambda: lam, D: EL.D, C: EL.C, layers: EL.LAYERS, xs: EL.XS, x0: 32 + 6 + 3 * EL.SX, y0: H / 2, sx: EL.SX, sy: EL.SY, W: W, H: H };
+  }
+  // square lattice of soft repulsive atoms (Gaussian bumps of height V0); surface column at x = xs
+  function crystalScene(p) {
+    var W = p.W, H = p.H, V = new Float32Array(W * H), wall = new Uint8Array(W * H), atoms = [], r = EL.RA, R = Math.ceil(4 * r);
+    for (var L = 0; L < p.layers; L++) {
+      var ax = p.xs + L * p.C;
+      for (var ay = H / 2 + p.D / 2 - Math.floor((H / 2 - 40) / p.D) * p.D; ay < H - 40; ay += p.D) {   // rows symmetric about the axis
+        atoms.push({ x: ax, y: ay, L: L });
+        for (var y = Math.floor(ay - R); y <= ay + R; y++) for (var x = Math.floor(ax - R); x <= ax + R; x++) {
+          if (x < 0 || y < 0 || x >= W || y >= H) continue;
+          var dx = x + 0.5 - ax, dy = y + 0.5 - ay, v = EL.V0 * Math.exp(-(dx * dx + dy * dy) / (2 * r * r)), i = y * W + x;
+          if (v > V[i]) V[i] = v; if (v > 1) wall[i] = 1;
+        }
+      }
+    }
+    return { V: V, wall: wall, atoms: atoms };
+  }
+  // grating equation for normal incidence: D sinφ = nλ
+  function dgAngles(p) { var out = []; for (var n = 1; n * p.lambda < p.D; n++) out.push({ n: n, phi: Math.asin(n * p.lambda / p.D) / D2R }); return out; }
+  // angular distribution of the back-scattered wave: |ψ̃(k)|² over left-moving k (kx < 0), binned by
+  // φ = atan(ky / −kx) from the surface normal.  ψ on the region x < xMax (Hann taper at the edge), FFT 512².
+  function backscatterSpectrum(Rf, If, Ipf, W, H, xMax, k0, stride) {
+    stride = stride || 1; var N = 512, re = new Float64Array(N * N), im = new Float64Array(N * N), x, y, i;
+    for (y = 0; y < H; y++) for (x = 0; x < xMax; x++) {
+      var w = xMax - x < 24 ? 0.5 - 0.5 * Math.cos(Math.PI * (xMax - x) / 24) : 1, j = (y * W + x) * stride;
+      re[y * N + x] = w * Rf[j]; im[y * N + x] = w * 0.5 * (If[j] + Ipf[j]);
+    }
+    var rr = new Float64Array(N), ri = new Float64Array(N);
+    for (y = 0; y < N; y++) { for (x = 0; x < N; x++) { rr[x] = re[y * N + x]; ri[x] = im[y * N + x]; } fft(rr, ri); for (x = 0; x < N; x++) { re[y * N + x] = rr[x]; im[y * N + x] = ri[x]; } }
+    for (x = 0; x < N; x++) { for (y = 0; y < N; y++) { rr[y] = re[y * N + x]; ri[y] = im[y * N + x]; } fft(rr, ri); for (y = 0; y < N; y++) { re[y * N + x] = rr[y]; im[y * N + x] = ri[y]; } }
+    var bins = new Float64Array(181), tot = 0;      // 1° bins, φ = −90 … +90
+    for (y = 0; y < N; y++) for (x = 0; x < N; x++) {
+      var kx = 2 * Math.PI * (x < N / 2 ? x : x - N) / N, ky = 2 * Math.PI * (y < N / 2 ? y : y - N) / N;
+      if (kx >= 0) continue; var kk = Math.sqrt(kx * kx + ky * ky); if (kk < 0.6 * k0 || kk > 1.4 * k0) continue;
+      i = y * N + x; var pw = re[i] * re[i] + im[i] * im[i], phi = Math.atan2(ky, -kx) / D2R, b = Math.round(phi + 90);
+      if (b >= 0 && b <= 180) { bins[b] += pw; tot += pw; }
+    }
+    return { bins: bins, total: tot };
+  }
+  // kinematic (single-scattering, first Born) theory for the same finite lattice and beam
+  function kinematicAngular(p, atoms) {
+    var k = 2 * Math.PI / p.lambda, out = new Float64Array(181);
+    for (var b = 0; b <= 180; b++) {
+      var phi = (b - 90) * D2R, qx = -k * Math.cos(phi) - k, qy = k * Math.sin(phi), re = 0, im = 0;
+      var f = Math.exp(-(qx * qx + qy * qy) * EL.RA * EL.RA / 2);
+      for (var j = 0; j < atoms.length; j++) {
+        var a = atoms[j], g = Math.exp(-Math.pow(a.y - p.y0, 2) / (4 * p.sy * p.sy)), ph = -(qx * a.x + qy * a.y);
+        re += g * Math.cos(ph); im += g * Math.sin(ph);
+      }
+      out[b] = f * f * (re * re + im * im);
+    }
+    return out;
+  }
+  // locate the strongest peak in the 1° histogram between |φ| = lo … hi (both sides averaged), parabolic refine
+  function peakAngle(bins, lo, hi) {
+    var best = -1, bb = -1;
+    for (var b = 0; b <= 180; b++) { var phi = Math.abs(b - 90); if (phi < lo || phi > hi) continue; var v = bins[b] + bins[180 - b]; if (v > best) { best = v; bb = b; } }
+    if (bb < 1 || bb > 179) return null;
+    var y0 = bins[bb - 1] + bins[181 - bb], y1 = best, y2 = bins[bb + 1] + bins[179 - bb], den = y0 - 2 * y1 + y2;
+    return Math.abs(bb + (den !== 0 ? 0.5 * (y0 - y2) / den : 0) - 90);
+  }
+
+  /* =====================================================================
+     X-RAY POWDER DIFFRACTION
+     positions in quarter-lattice units (multiples of a/4) so every squared distance is an integer
+     ===================================================================== */
+  var FCC = [[0, 0, 0], [0, 2, 2], [2, 0, 2], [2, 2, 0]];
+  function addBasis(list, el, off) { return list.concat(FCC.map(function (t) { return { el: el, u: [t[0] + off[0], t[1] + off[1], t[2] + off[2]] }; })); }
+  var CRYSTALS = {
+    Si: { name: 'Si', a: 5.4309, B: 0.46, type: 'diamond', basis: addBasis(addBasis([], 'Si', [0, 0, 0]), 'Si', [1, 1, 1]) },
+    Cu: { name: 'Cu', a: 3.6149, B: 0.55, type: 'fcc', basis: addBasis([], 'Cu', [0, 0, 0]) },
+    NaCl: { name: 'NaCl', a: 5.6402, B: 1.4, type: 'rocksalt', basis: addBasis(addBasis([], 'Na1', [0, 0, 0]), 'Cl1', [2, 0, 0]) },
+    KCl: { name: 'KCl', a: 6.2917, B: 1.9, type: 'rocksalt', basis: addBasis(addBasis([], 'K1', [0, 0, 0]), 'Cl1', [2, 0, 0]) },
+    CsCl: { name: 'CsCl', a: 4.123, B: 1.8, type: 'B2', basis: [{ el: 'Cs1', u: [0, 0, 0] }, { el: 'Cl1', u: [2, 2, 2] }] }
+  };
+  var TUBES = { Cu: { name: 'Cu Kα', lam: 1.5406 }, Mo: { name: 'Mo Kα', lam: 0.7107 }, Co: { name: 'Co Kα', lam: 1.7890 } };
+  function species(cr) { var s = []; cr.basis.forEach(function (b) { if (s.indexOf(b.el) < 0) s.push(b.el); }); return s; }
+  function lp(tth) { var t = tth / 2; return (1 + Math.cos(tth) * Math.cos(tth)) / (Math.sin(t) * Math.sin(t) * Math.cos(t)); }
+  // Bragg + structure factor theory: every family {hkl} with 2θ ≤ tthMax
+  function braggReflections(cr, lam, tthMax) {
+    var nmax = Math.ceil(2 * cr.a / lam) + 1, fam = {};
+    for (var h = -nmax; h <= nmax; h++) for (var k = -nmax; k <= nmax; k++) for (var l = -nmax; l <= nmax; l++) {
+      var n2 = h * h + k * k + l * l; if (!n2) continue;
+      var d = cr.a / Math.sqrt(n2), st = lam / (2 * d); if (st >= 1) continue;
+      var tth = 2 * Math.asin(st); if (tth > tthMax * D2R) continue;
+      var s = st / lam, Fr = 0, Fi = 0;
+      cr.basis.forEach(function (b) { var f = formFactor(b.el, s) * Math.exp(-cr.B * s * s), ph = 2 * Math.PI * (h * b.u[0] + k * b.u[1] + l * b.u[2]) / 4; Fr += f * Math.cos(ph); Fi += f * Math.sin(ph); });
+      // reflections with the same d (e.g. 333 and 511) fall on the same ring: one entry, labelled "333/511"
+      var lab = [Math.abs(h), Math.abs(k), Math.abs(l)].sort(function (x, y) { return y - x; }).join(''), key = 'n' + n2;
+      if (!fam[key]) fam[key] = { hkl: lab, labs: [lab], d: d, tth: tth / D2R, m: 0, F2: 0, sumF2: 0 };
+      if (fam[key].labs.indexOf(lab) < 0) { fam[key].labs.push(lab); fam[key].labs.sort(); fam[key].hkl = fam[key].labs.join('/'); }
+      fam[key].m++; fam[key].sumF2 += Fr * Fr + Fi * Fi;
+    }
+    var out = [];
+    for (var key2 in fam) { var r = fam[key2]; r.F2 = r.sumF2 / r.m; r.I = r.sumF2 * lp(r.tth * D2R); out.push(r); }
+    out.sort(function (a, b) { return a.tth - b.tth; });
+    var mx = 0; out.forEach(function (r) { mx = Math.max(mx, r.I); });
+    out.forEach(function (r) { r.rel = mx > 0 ? 100 * r.I / mx : 0; r.absent = r.rel < 0.05; });
+    return out;
+  }
+  // spherical crystallite of radius Ra (Å): every atom, then the pair-distance histogram per species pair
+  function cluster(cr, Ra) {
+    var q = cr.a / 4, n = Math.ceil(Ra / cr.a) + 1, sp = species(cr), pts = [], R2 = Math.pow(Ra / q, 2);
+    for (var i = -n; i <= n; i++) for (var j = -n; j <= n; j++) for (var k = -n; k <= n; k++) cr.basis.forEach(function (b) {
+      var x = 4 * i + b.u[0], y = 4 * j + b.u[1], z = 4 * k + b.u[2];
+      if (x * x + y * y + z * z <= R2) pts.push(x, y, z, sp.indexOf(b.el));
+    });
+    var N = pts.length / 4, ns = sp.length, maxn2 = Math.ceil(4 * R2) + 1, hist = [], cnt = new Float64Array(ns);
+    for (var a = 0; a < ns * ns; a++) hist.push(new Float64Array(maxn2 + 1));
+    for (i = 0; i < N; i++) {
+      var xi = pts[4 * i], yi = pts[4 * i + 1], zi = pts[4 * i + 2], si = pts[4 * i + 3]; cnt[si]++;
+      for (j = i + 1; j < N; j++) {
+        var dx = xi - pts[4 * j], dy = yi - pts[4 * j + 1], dz = zi - pts[4 * j + 2], sj = pts[4 * j + 3];
+        hist[si < sj ? si * ns + sj : sj * ns + si][dx * dx + dy * dy + dz * dz] += 2;
+      }
+    }
+    var shells = [];                              // compress: list of (n2, pairIndex, count)
+    for (a = 0; a < ns * ns; a++) for (var m = 1; m <= maxn2; m++) if (hist[a][m]) shells.push(m, a, hist[a][m]);
+    return { N: N, sp: sp, cnt: cnt, shells: shells, q: q, Ra: Ra };
+  }
+  // Debye scattering equation: I(q) = Σ_ij f_i f_j sin(q r_ij)/(q r_ij), exact orientation average of the cluster
+  function debyePattern(cr, cl, lam, tth0, tth1, nPts) {
+    var out = new Float64Array(nPts), ns = cl.sp.length, f = new Float64Array(ns), sh = cl.shells, nsh = sh.length / 3;
+    var r = new Float64Array(nsh); for (var s = 0; s < nsh; s++) r[s] = cl.q * Math.sqrt(sh[3 * s]);
+    for (var p = 0; p < nPts; p++) {
+      var tth = (tth0 + (tth1 - tth0) * p / (nPts - 1)) * D2R, st = Math.sin(tth / 2), sv = st / lam, qv = 4 * Math.PI * sv;
+      for (var e = 0; e < ns; e++) f[e] = formFactor(cl.sp[e], sv) * Math.exp(-cr.B * sv * sv);
+      var I = 0; for (e = 0; e < ns; e++) I += cl.cnt[e] * f[e] * f[e];
+      for (s = 0; s < nsh; s++) { var a = sh[3 * s + 1], fi = f[(a / ns) | 0], fj = f[a % ns], x = qv * r[s]; I += sh[3 * s + 2] * fi * fj * Math.sin(x) / x; }
+      out[p] = Math.max(0, I) * (1 + Math.cos(tth) * Math.cos(tth)) / 2;   // unpolarised beam
+    }
+    return out;
+  }
+  // measure each reflection in a simulated pattern: local maximum near the predicted 2θ (parabolic) and the
+  // integrated area above a straight background drawn between the windows' edges
+  function measurePeaks(pat, tth0, tth1, refl, halfWin) {
+    var n = pat.length, dx = (tth1 - tth0) / (n - 1);
+    return refl.map(function (r) {
+      var c = Math.round((r.tth - tth0) / dx), w = Math.max(2, Math.round(halfWin / dx)), lo = Math.max(1, c - w), hi = Math.min(n - 2, c + w), b = lo;
+      for (var i = lo; i <= hi; i++) if (pat[i] > pat[b]) b = i;
+      var y0 = pat[b - 1], y1 = pat[b], y2 = pat[b + 1], den = y0 - 2 * y1 + y2, pos = tth0 + (b + (den ? 0.5 * (y0 - y2) / den : 0)) * dx;
+      var bl = pat[lo], bh = pat[hi], area = 0;
+      for (i = lo; i <= hi; i++) area += pat[i] - (bl + (bh - bl) * (i - lo) / (hi - lo));
+      return { tth: pos, area: Math.max(0, area * dx), edge: b === lo || b === hi };
+    });
+  }
+
+  // area of a simulated pattern above a straight background between lo and hi (degrees)
+  function patternArea(pat, tth0, tth1, lo, hi) {
+    var n = pat.length, dx = (tth1 - tth0) / (n - 1), i0 = Math.max(0, Math.round((lo - tth0) / dx)), i1 = Math.min(n - 1, Math.round((hi - tth0) / dx)), s = 0;
+    for (var i = i0; i <= i1; i++) s += pat[i] - (pat[i0] + (pat[i1] - pat[i0]) * (i - i0) / Math.max(1, i1 - i0));
+    return Math.max(0, s * dx);
+  }
+  // overlapping reflections (closer than 2.5 Scherrer widths) are integrated together, as in real powder work
+  function reflectionGroups(refl, lam, D) {
+    var list = refl.filter(function (r) { return r.rel >= 0.05; }), groups = [];
+    function fw(r) { return 0.94 * lam / (D * Math.cos(r.tth * Math.PI / 360)) / D2R; }
+    list.forEach(function (r) { var g = groups[groups.length - 1]; if (g && r.tth - g.members[g.members.length - 1].tth < 2.5 * fw(r)) g.members.push(r); else groups.push({ members: [r] }); });
+    groups.forEach(function (g, i) {
+      var f0 = g.members[0], f1 = g.members[g.members.length - 1];
+      g.lo = f0.tth - 3 * fw(f0); g.hi = f1.tth + 3 * fw(f1);
+      if (i > 0) g.lo = Math.max(g.lo, 0.5 * (groups[i - 1].members[groups[i - 1].members.length - 1].tth + f0.tth));
+      if (i < groups.length - 1) g.hi = Math.min(g.hi, 0.5 * (f1.tth + groups[i + 1].members[0].tth));
+      g.rel = 0; g.top = f0; g.members.forEach(function (m) { g.rel += m.rel; if (m.rel > g.top.rel) g.top = m; });
+      g.label = g.members.filter(function (m) { return m.rel >= 0.5; }).map(function (m) { return m.hkl; }).join(' + ') || g.top.hkl;
+      g.fw = fw(g.top);
+    });
+    return groups;
+  }
+
+  /* =====================================================================
+     DNA FIBRE DIFFRACTION (Photo 51)
+     ===================================================================== */
+  var DNA_PRESETS = {
+    B: { pitch: 34, bp: 10, r: 8.9, off: 0.375, two: true },      // Franklin & Gosling 1953, Watson–Crick B form
+    A: { pitch: 28.2, bp: 11, r: 8.9, off: 0.375, two: true },
+    single: { pitch: 34, bp: 10, r: 8.9, off: 0.375, two: false },
+    even: { pitch: 34, bp: 10, r: 8.9, off: 0.5, two: true }
+  };
+  // scatterers per base-pair level: phosphate (r, weight 1), sugar (0.70 r, 0.8), base pair (4 points on the chord, 0.35 each)
+  function dnaModel(p, turns) {
+    var atoms = [], rise = p.pitch / p.bp, n = Math.round(turns * p.bp), dphi = 2 * Math.PI * p.off;
+    for (var k = 0; k < n; k++) {
+      var z = (k - (n - 1) / 2) * rise, phi = 2 * Math.PI * k / p.bp, strands = p.two ? [0, dphi] : [0];
+      strands.forEach(function (o) { atoms.push({ r: p.r, phi: phi + o, z: z, f: 1 }); atoms.push({ r: 0.7 * p.r, phi: phi + o, z: z, f: 0.8 }); });
+      if (p.two) for (var t = 1; t <= 4; t++) {
+        var u = 0.2 * t, ax = 0.7 * p.r * Math.cos(phi), ay = 0.7 * p.r * Math.sin(phi), bx = 0.7 * p.r * Math.cos(phi + dphi), by = 0.7 * p.r * Math.sin(phi + dphi);
+        var x = ax + (bx - ax) * u, y = ay + (by - ay) * u; atoms.push({ r: Math.sqrt(x * x + y * y), phi: Math.atan2(y, x), z: z, f: 0.35 });
+      }
+    }
+    return { atoms: atoms, n: n, rise: rise };
+  }
+  // simulated fibre pattern: direct sum over every scatterer of the finite molecule, cylindrically averaged
+  // I(R, Z) = < |Σ_j f_j exp 2πi(R r_j cos(ψ − φ_j) + Z z_j)|² >_ψ        (R horizontal, Z along the fibre axis)
+  function fibrePattern(model, nR, nZ, Rmax, Zmax, nPsi) {
+    var at = model.atoms, levels = [], li = {}, j, out = new Float64Array(nR * nZ);
+    at.forEach(function (a) { var key = a.z.toFixed(4); if (!(key in li)) { li[key] = levels.length; levels.push(a.z); } a.lv = li[key]; });
+    var L = levels.length, cz = new Float64Array(nZ * L), sz = new Float64Array(nZ * L);
+    for (var iz = 0; iz < nZ; iz++) { var Z = Zmax * iz / (nZ - 1); for (j = 0; j < L; j++) { cz[iz * L + j] = Math.cos(2 * Math.PI * Z * levels[j]); sz[iz * L + j] = Math.sin(2 * Math.PI * Z * levels[j]); } }
+    var Ar = new Float64Array(L), Ai = new Float64Array(L);
+    for (var ir = 0; ir < nR; ir++) {
+      var R = Rmax * (ir + 0.5) / nR;
+      for (var ip = 0; ip < nPsi; ip++) {
+        var psi = 2 * Math.PI * ip / nPsi; Ar.fill(0); Ai.fill(0);
+        for (j = 0; j < at.length; j++) { var a = at[j], ph = 2 * Math.PI * R * a.r * Math.cos(psi - a.phi); Ar[a.lv] += a.f * Math.cos(ph); Ai[a.lv] += a.f * Math.sin(ph); }
+        for (iz = 0; iz < nZ; iz++) {
+          var fr = 0, fi = 0, o = iz * L;
+          for (j = 0; j < L; j++) { var c = cz[o + j], s = sz[o + j]; fr += Ar[j] * c - Ai[j] * s; fi += Ar[j] * s + Ai[j] * c; }
+          out[iz * nR + ir] += (fr * fr + fi * fi) / nPsi;
+        }
+      }
+    }
+    return out;
+  }
+  // Bessel J_n by Miller's downward recurrence (n ≥ 0), J_{−n} = (−1)^n J_n
+  function besselJ(n, x) {
+    var an = Math.abs(n), sgn = n < 0 && an % 2 ? -1 : 1;
+    if (x === 0) return an === 0 ? 1 : 0;
+    if (Math.abs(x) < 1e-8) return 0;
+    var m = 2 * (Math.floor(Math.max(an, Math.abs(x)) + 20) >> 1), jp = 0, j = 1e-30, res = 0, sum = 0;
+    for (var k = m; k > 0; k--) { var jm = 2 * k / x * j - jp; jp = j; j = jm; if (Math.abs(j) > 1e250) { j *= 1e-250; jp *= 1e-250; res *= 1e-250; sum *= 1e-250; } if (k - 1 === an) res = j; if ((k - 1) % 2 === 0 && k - 1 > 0) sum += 2 * j; }
+    sum += j; return sgn * res / sum;
+  }
+  // helical diffraction theory (Cochran, Crick & Vand 1952) for an infinite helix with u units per turn:
+  // on layer line l only Bessel orders n = l − u·m contribute:  I_l(R) = Σ_n | Σ_j f_j J_n(2πR r_j) e^{i(−nφ_j + 2πl z_j/P)} |²
+  function helixTheory(p, l, R) {
+    var m0 = p.two ? null : null, unit = dnaModel(p, 1 / p.bp + 1e-9).atoms, tot = 0;    // the scatterers of one base-pair level
+    unit.forEach(function (a) { a.z = 0; });
+    for (var m = -3; m <= 3; m++) {
+      var n = l - p.bp * m, re = 0, im = 0; if (Math.abs(n) > 40) continue;
+      for (var j = 0; j < unit.length; j++) { var a = unit[j], J = besselJ(n, 2 * Math.PI * R * a.r), ph = -n * a.phi; re += a.f * J * Math.cos(ph); im += a.f * J * Math.sin(ph); }
+      tot += re * re + im * im;
+    }
+    return tot;
+  }
+  // integrated layer-line intensities, R from Rlo to Rhi.  From a pattern (sum over ±halfZ rows round Z = l/P) and from theory.
+  function layerLinesSim(pat, nR, nZ, Rmax, Zmax, pitch, lmax, Rlo, Rhi) {
+    var out = [], dz = Zmax / (nZ - 1), half = Math.max(1, Math.round(0.35 / pitch / dz));
+    for (var l = 0; l <= lmax; l++) {
+      var c = Math.round(l / pitch / dz), s = 0;
+      for (var iz = Math.max(0, c - half); iz <= Math.min(nZ - 1, c + half); iz++) for (var ir = 0; ir < nR; ir++) { var R = Rmax * (ir + 0.5) / nR; if (R >= Rlo && R <= Rhi) s += pat[iz * nR + ir] * (iz === 0 ? 2 : 1); }
+      out.push(s);
+    }
+    return out;
+  }
+  function layerLinesTheory(p, lmax, Rlo, Rhi, nR) {
+    var out = []; nR = nR || 120;
+    for (var l = 0; l <= lmax; l++) { var s = 0; for (var i = 0; i < nR; i++) s += helixTheory(p, l, Rlo + (Rhi - Rlo) * (i + 0.5) / nR); out.push(s); }
+    return out;
+  }
+  // along the meridian strip (|R| small) / every row: find Z positions of layer lines → pitch; meridional peak → rise
+  function rowSums(pat, nR, nZ, irMax) { var r = new Float64Array(nZ); for (var iz = 0; iz < nZ; iz++) for (var ir = 0; ir < Math.min(nR, irMax); ir++) r[iz] += pat[iz * nR + ir]; return r; }
+  function localPeak(a, c, w) {
+    var lo = Math.max(1, c - w), hi = Math.min(a.length - 2, c + w), b = lo;
+    for (var i = lo; i <= hi; i++) if (a[i] > a[b]) b = i;
+    var y0 = a[b - 1], y1 = a[b], y2 = a[b + 1], den = y0 - 2 * y1 + y2; return b + (den ? 0.5 * (y0 - y2) / den : 0);
+  }
+
+  /* =====================================================================
+     COMPTON SCATTERING
+     ===================================================================== */
+  var SOURCES = { Mo: { name: 'Mo Kα', E: HC / 0.7107 }, Ag: { name: 'Ag Kα', E: HC / 0.5609 }, Am: { name: '²⁴¹Am γ', E: 59.5409 }, Cs: { name: '¹³⁷Cs γ', E: 661.657 } };
+  // targets: electrons grouped by shell, each with a Gaussian momentum spread σ (atomic units, per component)
+  var TARGETS = { C: { Z: 6, el: 'C', shells: [[2, 3.3], [4, 0.95]] }, Al: { Z: 13, el: 'Al', shells: [[2, 7.5], [8, 2.3], [3, 0.75]] }, free: { Z: 1, el: null, shells: [[1, 0]] } };
+  function comptonShift(th) { return LAMBDA_C * (1 - Math.cos(th)); }
+  function comptonEnergy(E, th) { return E / (1 + E / MEC2 * (1 - Math.cos(th))); }
+  // Klein–Nishina dσ/dΩ in units of r_e² (θ = scattering angle)
+  function kleinNishina(E, th) { var P = comptonEnergy(E, th) / E, s = Math.sin(th); return 0.5 * P * P * (P + 1 / P - s * s); }
+  function thomson(th) { var c = Math.cos(th); return 0.5 * (1 + c * c); }
+  // incoherent scattering function S(q) ≈ Z − f(q)²/Z (Waller–Hartree with equivalent electrons; approximate)
+  function incoherentS(tg, s) { if (!tg.el) return 1; var f = formFactor(tg.el, s); return Math.max(0, tg.Z - f * f / tg.Z); }
+  function coherentF2(tg, s) { if (!tg.el) return 0; var f = formFactor(tg.el, s); return f * f; }
+  // relative differential cross sections per atom at scattering angle θ
+  function crossSections(tg, E, th) {
+    var lam = HC / E, s = Math.sin(th / 2) / lam;
+    return { coh: coherentF2(tg, s) * thomson(th), inc: incoherentS(tg, s) * kleinNishina(E, th) };
+  }
+  // exact energy of a photon scattered by an electron of momentum p (units m_e c) — 4-vector conservation:
+  // E' = E (1 − β·n) / [ (1 − β·n') + (E / γmc²)(1 − n·n') ],  n = incoming, n' = outgoing direction
+  function scatterMoving(E, n, n2, p) {
+    var g = Math.sqrt(1 + p[0] * p[0] + p[1] * p[1] + p[2] * p[2]), bn = (p[0] * n[0] + p[1] * n[1] + p[2] * n[2]) / g, bn2 = (p[0] * n2[0] + p[1] * n2[1] + p[2] * n2[2]) / g, nn = n[0] * n2[0] + n[1] * n2[1] + n[2] * n2[2];
+    return E * (1 - bn) / ((1 - bn2) + E / (g * MEC2) * (1 - nn));
+  }
+  function gauss(rng) { var u = Math.max(1e-12, rng()), v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+  // one detected photon at detector angle thDet (± half-acceptance acc, radians): returns { lam, coh }
+  function comptonEvent(tg, E, thDet, acc, rng) {
+    for (var tries = 0; tries < 1000; tries++) {
+      var c0 = Math.cos(thDet - acc), c1 = Math.cos(Math.min(Math.PI, thDet + acc)), ct = c1 + (c0 - c1) * rng(), th = Math.acos(ct);   // uniform in solid angle
+      var cs = crossSections(tg, E, th), cmax = crossSections(tg, E, Math.max(0, thDet - acc)), wmax = 1.2 * (cmax.coh + cmax.inc) + 1e-9;
+      if (rng() * wmax > cs.coh + cs.inc) continue;
+      var lam0 = HC / E;
+      if (rng() * (cs.coh + cs.inc) < cs.coh) return { lam: lam0, coh: true, th: th };
+      var tot = 0, sh = tg.shells, u = rng(), sig = 0; tg.shells.forEach(function (x) { tot += x[0]; });
+      for (var k = 0, acc2 = 0; k < sh.length; k++) { acc2 += sh[k][0] / tot; if (u <= acc2) { sig = sh[k][1]; break; } }
+      var p = [gauss(rng) * sig * AU_P, gauss(rng) * sig * AU_P, gauss(rng) * sig * AU_P], az = 2 * Math.PI * rng();
+      var n2 = [Math.cos(th), Math.sin(th) * Math.cos(az), Math.sin(th) * Math.sin(az)];
+      return { lam: HC / scatterMoving(E, [1, 0, 0], n2, p), coh: false, th: th };
+    }
+    return { lam: HC / E, coh: true, th: thDet };
+  }
+  // theory line shape: Compton line at λ0 + λc(1 − cos θ), Doppler width from the impulse approximation
+  // σ_λ = (σ_p / mc)·|Λ|,  |Λ| = √(λ0² + λ'² − 2λ0λ' cos θ), one Gaussian per shell; plus the unshifted line
+  function comptonTheory(tg, E, th, lamGrid, sInst) {
+    var lam0 = HC / E, lam1 = lam0 + comptonShift(th), cs = crossSections(tg, E, th), out = new Float64Array(lamGrid.length), tot = 0;
+    tg.shells.forEach(function (x) { tot += x[0]; });
+    var Lmod = Math.sqrt(lam0 * lam0 + lam1 * lam1 - 2 * lam0 * lam1 * Math.cos(th));
+    function g(x, mu, s) { return Math.exp(-0.5 * Math.pow((x - mu) / s, 2)) / (s * Math.sqrt(2 * Math.PI)); }
+    for (var i = 0; i < lamGrid.length; i++) {
+      var v = cs.coh * g(lamGrid[i], lam0, sInst);
+      tg.shells.forEach(function (x) { var sd = Math.sqrt(Math.pow(x[1] * AU_P * Lmod, 2) + sInst * sInst); v += cs.inc * x[0] / tot * g(lamGrid[i], lam1, sd); });
+      out[i] = v;
+    }
+    return out;
+  }
+  // least squares through the origin: Δλ = λc (1 − cos θ)
+  function fitSlope(xs, ys) { var sxy = 0, sxx = 0; for (var i = 0; i < xs.length; i++) { sxy += xs[i] * ys[i]; sxx += xs[i] * xs[i]; } return sxx > 0 ? sxy / sxx : NaN; }
+
+  return {
+    HC: HC, LAMBDA_C: LAMBDA_C, MEC2: MEC2, AU_P: AU_P, D2R: D2R, electronLambda: electronLambda, CM: CM, formFactor: formFactor, fft: fft,
+    EL: EL, EL_LIMITS: EL_LIMITS, electronParams: electronParams, crystalScene: crystalScene, dgAngles: dgAngles, backscatterSpectrum: backscatterSpectrum, kinematicAngular: kinematicAngular, peakAngle: peakAngle,
+    CRYSTALS: CRYSTALS, TUBES: TUBES, species: species, lp: lp, braggReflections: braggReflections, cluster: cluster, debyePattern: debyePattern, measurePeaks: measurePeaks, patternArea: patternArea, reflectionGroups: reflectionGroups,
+    DNA_PRESETS: DNA_PRESETS, dnaModel: dnaModel, fibrePattern: fibrePattern, besselJ: besselJ, helixTheory: helixTheory, layerLinesSim: layerLinesSim, layerLinesTheory: layerLinesTheory, rowSums: rowSums, localPeak: localPeak,
+    SOURCES: SOURCES, TARGETS: TARGETS, comptonShift: comptonShift, comptonEnergy: comptonEnergy, kleinNishina: kleinNishina, thomson: thomson, crossSections: crossSections, scatterMoving: scatterMoving, comptonEvent: comptonEvent, comptonTheory: comptonTheory, fitSlope: fitSlope, gauss: gauss
+  };
+})();
+if (typeof module !== 'undefined') module.exports = QX;
+</script>
+
+<!-- ==================================================================== -->
 <!-- Engines: WebGL2 (main) and CPU fallback share one interface             -->
 <!-- ==================================================================== -->
 <script>
@@ -653,7 +1176,7 @@ GpuEngine.prototype.reset = function (sc) {
   var z = new Float32Array(4 * H);
   for (i = 0; i < 2; i++) { gl.bindTexture(gl.TEXTURE_2D, this.A[i].t); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, 1, H, 0, gl.RGBA, gl.FLOAT, z); }
   this.cur = 0; this.acur = 0; this.t = 0; this.fluxX = sc.fluxX;
-  this.ref = 1 / (2 * Math.PI * sc.packet.sigma * sc.packet.sigma);
+  this.ref = 1 / (2 * Math.PI * sc.packet.sigma * (sc.packet.sigmaY || sc.packet.sigma));
 };
 GpuEngine.prototype.step = function (nSteps) {
   var gl = this.gl, W = this.W, H = this.H, ps = this.pStep, pf = this.pFlux;
@@ -701,7 +1224,7 @@ function CpuEngine(canvas, W, H) {
 CpuEngine.prototype.reset = function (sc) {
   this.sim.dt = this.dt = sc.dt; this.sim.setPotential(sc.V, sc.M); this.sim.initPacket(sc.packet);
   this.wall = sc.wall; this.M = sc.M; this.fl = { x: sc.fluxX, acc: new Float64Array(this.H) }; this.t = 0;
-  this.ref = 1 / (2 * Math.PI * sc.packet.sigma * sc.packet.sigma);
+  this.ref = 1 / (2 * Math.PI * sc.packet.sigma * (sc.packet.sigmaY || sc.packet.sigma));
 };
 CpuEngine.prototype.step = function (n) { this.sim.step(n, this.fl); this.t = this.sim.t; };
 CpuEngine.prototype.readFlux = function (out) { out = out || new Float64Array(this.H); out.set(this.fl.acc); return out; };
@@ -728,7 +1251,7 @@ function makeGl(canvas) {
 </script>
 
 <!-- ==================================================================== -->
-<!-- App                                                                    -->
+<!-- Experiment 1: double slit                                              -->
 <!-- ==================================================================== -->
 <script>
 'use strict';
@@ -874,6 +1397,7 @@ function scene(only) {
 /* ---------------- run control ---------------- */
 function resetRun(keepStatus) {
   run.status = 'idle'; run.bi = 0; run.frame = 0; run.inside = 1;
+  if (part.on) { part.on = false; part.waiting = true; }     // re-fire in particle mode: resume dots after the new run
   var N = P.N, br = [];
   if (observing()) for (var j = 0; j < N; j++) br.push({ only: j, acc: new Float64Array(H), P: 0, done: false });
   else br.push({ only: -1, acc: new Float64Array(H), P: 0, done: false });
@@ -906,7 +1430,7 @@ function combined() {
   for (var i = 0; i < run.branches.length; i++) { var a = run.branches[i].acc; for (var y = 0; y < H; y++) c[y] += a[y]; }
   return c;
 }
-function tick() {
+function slitTick() {
   if (run.status === 'running') {
     var b = run.branches[run.bi], steps = part.waiting ? 140 : S.speed;
     if (engine.kind === 'CPU') steps = Math.max(2, Math.round(steps / 8));
@@ -920,11 +1444,10 @@ function tick() {
   }
   if (part.on) emitDots();
   draw();
-  requestAnimationFrame(tick);
 }
 
 /* ---------------- particle mode ---------------- */
-function clearDots() { part.dots = []; part.hist = new Float64Array(H / 4); part.carry = 0; part.flashes = []; part.cdfs = null; $('#dotCount').textContent = '0'; $('#tvVal').textContent = '—'; }
+function clearDots() { dotCtx.clearRect(0, 0, dotLayer.width, dotLayer.height); part.dots = []; part.hist = new Float64Array(H / 4); part.carry = 0; part.flashes = []; part.cdfs = null; $('#dotCount').textContent = '0'; $('#tvVal').textContent = '—'; }
 function buildCdfs() {
   var w = [], c = [];
   for (var i = 0; i < run.branches.length; i++) {          // only the visible screen (outside it is the absorbing band)
@@ -935,6 +1458,7 @@ function buildCdfs() {
 }
 function emitDots() {
   if (!part.cdfs) buildCdfs();
+  if (!(part.cdfs.wsum > 0)) { part.cdfs = null; return; }   // nothing has reached the screen yet
   var dtf = 1 / 60; part.carry += part.rate * dtf; var n = Math.floor(part.carry); part.carry -= n;
   if (part.dots.length > 60000) n = 0;
   for (var k = 0; k < n; k++) {
@@ -1056,6 +1580,7 @@ function drawDetector() {
   c.textBaseline = 'top'; c.textAlign = 'center'; c.fillText(t('detDots'), stripW / 2, 8 * dpr); c.fillText(t('detCurve'), x0 + pw / 2, 8 * dpr);
 }
 function drawStatus() {
+  if (X.cur !== 'slit') return;
   if (run.frame % 4 && run.status === 'running') return;
   var c = combined(), Ps = 0; for (var y = 0; y < H; y++) Ps += c[y];
   var inside = run.status === 'idle' ? 1 : run.inside;
@@ -1103,88 +1628,986 @@ function showMsg(text, ms) {
   var m = $('#msg'); m.textContent = text; m.classList.add('on'); clearTimeout(msgTimer);
   if (ms) msgTimer = setTimeout(function () { m.classList.remove('on'); }, ms);
 }
-function updateButtons() {
-  $('#fireBtn').textContent = run.status === 'paused' ? t('resume') : t('fire');
-  $('#fireBtn').disabled = run.status === 'running';
-  $('#pauseBtn').disabled = run.status !== 'running';
-  $('#partBtn').textContent = part.waiting ? t('partWait') : part.on ? t('partStop') : t('partStart');
-}
+</script>
 
-/* ---------------- i18n ---------------- */
+<!-- ==================================================================== -->
+<!-- Lab shell + experiments 2–5                                            -->
+<!-- ==================================================================== -->
+<script>
+'use strict';
+/* ---------------- strings for the lab shell and experiments 2–5 (override / extend the slit strings) ---------------- */
+Object.assign(I18N.ko, {
+  tagline: '빛과 전자가 파동이면서 입자임을 보여 주는 다섯 실험', learn: '? 원리', hSetup: '실험 장치', hTheory: '이론식', fire: '▶ 발사',
+  tabSlit: '이중 슬릿', tabElectron: '전자선 회절', tabXray: 'X선 회절', tabDna: 'DNA 회절', tabCompton: '콤프턴 효과',
+  leadSlit: '<b>이중 슬릿</b> · 슈뢰딩거 방정식을 직접 풀어 파동이 두 슬릿을 동시에 지나는 모습을 보고, 입자를 하나씩 쏴서 점이 무늬가 되는지 확인합니다.',
+  leadElectron: '<b>전자선 회절</b> · 전자를 결정에 쏘면 특정 각도로만 튕겨 나옵니다. 1927년 데이비슨과 거머가 54 eV 전자에서 50°의 봉우리를 발견해 전자가 파동임을 증명했습니다.',
+  leadXray: '<b>X선 분말 회절</b> · 작은 결정 알갱이에 X선을 쪼이면 브래그 조건 2d sinθ = λ를 만족하는 각도에만 고리가 생깁니다. 고리 위치로 원자 간격을, 세기로 원자 배치를 읽습니다.',
+  leadDna: '<b>DNA 섬유 회절</b> · 1952년 로절린드 프랭클린의 사진 51. 나선 모양 분자는 X자 무늬를 만들고, 층선 간격·빠진 층선에서 피치 34 Å, 이중 나선, 홈의 크기를 읽어낼 수 있습니다.',
+  leadCompton: '<b>콤프턴 효과</b> · X선 광자가 전자와 당구공처럼 부딪히면 파장이 Δλ = (h/mc)(1 − cos θ)만큼 늘어납니다. 빛이 운동량을 가진 입자(광자)라는 증거입니다.',
+  footX: 'X선 분말 회절 · 디바이 산란 방정식 (결정립 속 모든 원자 쌍) · Cromer–Mann 원자 산란 인자 · 비편광 X선', footD: 'DNA 섬유 회절 · 모든 산란체의 직접 합을 섬유 축 둘레로 평균 · 작은 각 근사 (에발트 구 곡률 무시)', footC: '콤프턴 산란 · 클라인–니시나 단면적 · 4차원 운동량 보존 · 임펄스 근사의 전자 운동량 분포',
+  resume: '▶ 계속', compute: '▶ 계산·측정', measure: '▶ 측정 시작', measuring: '측정 중…',
+  elPart: '● 전자 쏘기', phPart: '● 광자 쏘기', partStop: '■ 멈추기', partWait: '계산 중…',
+  lgSim: '시뮬레이션 (파동)', lgHist: '점 히스토그램', lgFr: '프라운호퍼', lgHu: '하위헌스 (근거리)',
+  elLgSim: '시뮬레이션 (슈뢰딩거)', elLgHist: '검출된 전자', elLgFr: 'D sinφ = λ (이론 각도)', elLgHu: '운동학 이론 (1차 보른)',
+  xrLgSim: '디바이 계산 (모든 원자)', xrLgHist: '광자 히스토그램', xrLgFr: '브래그 + 구조 인자 (이론)',
+  dnLgSim: '세기 (모든 원자 직접 합)', dnLgHist: '광자 (필름)', dnLgHu: '나선 회절 이론 (CCV)',
+  cpLgSim: '측정 스펙트럼 (광자 계수)', cpLgFr: '콤프턴 공식', cpLgHu: '이론 선 모양',
+  hScan: '에너지 스캔', hSample: '시료', hSource: '광원', hModel: '분자 모형', hDetector: '검출기',
+  elP54: '54 eV (데이비슨–거머)', elP30: '30 eV', elP100: '100 eV', elE: '가속 전압 V',
+  elEH: '전자의 파장 λ = h/√(2meV) ≈ 12.26/√V Å · 전압이 높을수록 파장이 짧아 각도가 작아진다',
+  elCrystal: '결정', elCrystalV: '니켈 표면을 본뜬 2차원 정사각 격자 · 원자 간격 D = 2.15 Å, 4층',
+  elScan: '에너지 스캔 (30 → 90 eV)', elScanStop: '■ 스캔 멈추기', elScanNote: '전압을 바꿔 가며 1차 빔의 세기를 잽니다. 데이비슨과 거머가 실제로 한 측정입니다.',
+  elScanAxis: '가속 전압 (eV)', elScanY: '1차 빔 비율', elScanPeak: '최대: 시뮬 {s} eV · 운동학 {k} eV · 실험(1927) 54 eV',
+  elFormula: 'D sin φ = n λ<br>λ = h / √(2 m e V)',
+  elFormulaN: '표면 원자 줄이 회절격자 역할. φ는 입사 방향(표면의 법선)에서 잰 각도',
+  elMsgFire: '▶ 발사를 눌러 전자 파속을 결정에 쏘세요', elMsgRun: '전자 파동이 결정 원자에 흩어지는 중…', elMsgDone: '완료 — 오른쪽 극좌표 그래프에서 각도 분포를 보세요. ● 전자 쏘기로 한 개씩 쏴 볼 수 있습니다',
+  elMsgScan: '에너지 스캔 {i}/{n}: {e} eV',
+  elOvCrystal: '결정 (D = 2.15 Å)', elOvGun: '전자', elOvTheory: '이론', elDetTitle: '각도 분포 (극좌표)', elDetSpec: '정반사',
+  elMLam: '전자 파장 λ', elMLamS: 'h/√(2meV)', elMTh: '이론 각도 φ₁', elMThS: 'arcsin(λ/D)', elMSim: '시뮬 봉우리 각도', elMSimS: '반사파의 운동량 분포에서',
+  elMKin: '운동학 이론 봉우리', elMKinS: '같은 격자·빔, 다중 산란 무시', elMFrac: '1차 빔 비율', elMFracS: '반사된 확률 중 1차 봉우리 ±5°',
+  elMDG: '실제 실험 (1927)', elMDGv: '54 eV → 50°', elMDGs: '니켈 단결정, 데이비슨–거머', elMNone: '없음 (λ > D)', elMDots: '검출된 전자',
+  elGuide: [['linear-gradient(90deg,#ff7070,#9be35a,#3fd0d0,#8d6bff)', '전자 파동 ψ: 색 = 위상, 밝기 = 크기'], ['#cfd7e6', '흰 점 = 결정 원자 (반발 퍼텐셜)'], ['#ffb454', '주황 점선 = D sinφ = λ 로 예측한 각도'], ['#f2f5fa', '오른쪽: 반사된 전자의 각도 분포']],
+  xrSize: '결정립 지름', xrSizeH: '작을수록 고리가 넓게 번진다 (셰러 효과) · 이 크기의 공 안의 원자를 모두 계산',
+  xrTubeNote: '특성 X선 파장. 파장이 짧은 Mo는 같은 결정이라도 고리가 작은 각도에 몰린다',
+  xrCrystalNotes: { NaCl: '암염 구조 (fcc + 2원자), a = 5.640 Å', KCl: '암염 구조, a = 6.292 Å · K⁺와 Cl⁻ 전자 수가 같아 홀수 반사가 사라진다', Si: '다이아몬드 구조, a = 5.431 Å · (200), (222) 소멸', Cu: '면심입방 (fcc), a = 3.615 Å · h,k,l이 모두 홀수이거나 모두 짝수일 때만', CsCl: '단순입방 2원자 (B2), a = 4.123 Å · 소멸 없음' },
+  xrFormula: '2 d sin θ = λ,  d = a / √(h² + k² + l²)<br>I ∝ m |F<sub>hkl</sub>|² · (1 + cos²2θ) / (sin²θ cosθ)',
+  xrFormulaN: 'F = Σ f<sub>j</sub>(s) e<sup>−Bs²</sup> e<sup>2πi(hx+ky+lz)</sup> · 시뮬은 이 공식을 쓰지 않고 결정립 속 모든 원자 쌍의 디바이 합으로 계산',
+  xrMsgFire: '▶ 계산·측정을 누르면 결정립의 모든 원자로 회절을 계산하고 2θ를 훑습니다', xrMsgCalc: '원자 {n}개의 쌍 거리 계산 중…', xrMsgScan: '검출기가 2θ를 훑는 중…', xrMsgDone: '완료 — ● 광자 쏘기로 고리가 쌓이는 모습을 보세요',
+  xrViewTitle: '2차원 검출기 (반지름 ∝ 2θ)', xrPlotX: '2θ (도)', xrPlotY: '세기',
+  xrMA: '측정한 격자상수 a', xrMAs: '시뮬 봉우리 위치 → a = d√(h²+k²+l²)', xrMN: '결정립 속 원자 수', xrMTable: '반사', xrMAbs: '소멸된 반사', xrMDots: '검출된 광자', xrMTV: '광자 ↔ 계산 분포 차이',
+  xrTh: ['hkl', 'd (Å)', '2θ 이론', '2θ 시뮬', 'I 이론', 'I 시뮬'],
+  xrGuide: [['#f2f5fa', '흰 곡선 = 원자 하나하나에서 산란된 파동의 합 (디바이 방정식)'], ['#ffb454', '주황 막대 = 브래그 법칙 + 구조 인자로 예측한 반사'], ['#5d687d', '회색 × = 구조 인자가 0이라 사라진 반사'], ['#bfe6ff', '왼쪽: 광자 하나 = 점 하나, 쌓이면 고리']],
+  dnB: 'B형 (사진 51)', dnA: 'A형', dnSingle: '한 가닥', dnEven: '홈 크기 같음', dnPitch: '나선 피치 P', dnBp: '한 바퀴당 염기쌍', dnR: '인산 반지름 r', dnOff: '두 가닥 사이 간격 (피치 비율)',
+  dnOffH: 'B-DNA는 3/8 = 0.375 (작은 홈 ↔ 큰 홈). 0.5면 두 홈 크기가 같아진다', dnTwo: '이중 나선 (두 가닥)',
+  dnFormula: 'Z = l / P  (층선)<br>I<sub>l</sub>(R) = Σ<sub>n = l − u·m</sub> |Σ f<sub>j</sub> J<sub>n</sub>(2πR r<sub>j</sub>) e<sup>−inφ<sub>j</sub></sup>|²',
+  dnFormulaN: 'Cochran–Crick–Vand (1952). u = 한 바퀴당 염기쌍. 두 가닥이 피치의 Δ만큼 어긋나면 층선 l의 세기에 cos²(πlΔ)가 곱해져 Δ = 3/8일 때 l = 4가 사라진다',
+  dnMsgFire: '▶ 계산·측정을 누르면 분자 속 모든 원자에서 산란된 X선을 합해 섬유 회절 무늬를 만듭니다', dnMsgCalc: '산란체 {n}개 직접 합 계산 중…', dnMsgDone: '완료 — ● 광자 쏘기로 사진 51이 필름에 쌓이는 모습을 보세요',
+  dnViewTitle: '섬유 회절 필름', dnAxisZ: 'Z (섬유 축)', dnAxisR: 'R', dnMissing: '4번째 층선이 약함', dnPlotBars: '층선별 세기 (l = 1 …)', dnPlotProf: '층선 l = 1, 2, 3을 따라간 세기 (R)',
+  dnMP: '층선 간격 → 피치 P', dnMPs: 'Z = l/P 의 간격에서', dnMRise: '자오선 반사 → 염기쌍 간격', dnMRises: 'l = u 층선의 자오선 봉우리', dnMI43: '세기 비 I₄ / I₃', dnMI43s: '4번째 층선이 얼마나 약한가',
+  dnMR: '유효 반지름', dnMRs: 'l = 1 층선 첫 봉우리 R₁ → 1.841 / (2πR₁)', dnMCorr: '층선 세기 일치도 r', dnMCorrs: 'l = 1 … u, 시뮬 vs 이론', dnMDots: '검출된 광자',
+  dnGuide: [['#ffd27f', '밝은 점 = X선이 강하게 회절된 방향'], ['#ffb454', '주황 = 층선 l 위치 (Z = l / P)'], ['#f2f5fa', '흰 막대 = 시뮬 (모든 원자 직접 합)'], ['#6fe0c0', '청록 = 나선 회절 이론 (베셀 함수)']],
+  cpTarget: '표적', cpC: '흑연 (C)', cpAl: '알루미늄', cpFree: '정지 전자', cpTh: '산란각 θ', cpThH: '검출기를 놓은 각도. 각도가 클수록 파장이 더 많이 늘어난다',
+  cpRes: '분광기 분해능 σ', cpResH: '결정 분광기의 파장 분해능 (mÅ = 0.001 Å)', cpN: '한 번 측정할 광자 수',
+  cpFormula: 'Δλ = λ\' − λ = (h / m<sub>e</sub>c)(1 − cos θ)<br>dσ/dΩ = ½ r<sub>e</sub>² P² (P + 1/P − sin²θ)',
+  cpFormulaN: 'h/m<sub>e</sub>c = 0.02426 Å (콤프턴 파장), P = E\'/E. 시뮬은 움직이는 전자와의 충돌을 4차원 운동량 보존으로 하나씩 계산',
+  cpMsgFire: '▶ 측정 시작을 누르면 광자를 하나씩 쏴 θ 방향으로 산란된 광자의 파장을 잽니다', cpMsgRun: '측정 중 — 광자 {n} / {N}', cpMsgDone: '측정 완료 — 각도를 바꿔 다시 측정하면 오른쪽 아래 그래프에 점이 늘어납니다',
+  cpViewTitle: '산란 장치 (위에서 본 모습)', cpOvSrc: 'X선', cpOvTarget: '표적', cpOvDet: '검출기', cpOvKN: '각도 분포: 흰색 = 시뮬, 청록 = 이론',
+  cpPlotSpec: '검출기 스펙트럼 (θ = {th}°)', cpPlotX: '파장 λ\' (Å)', cpPlotFit: 'Δλ vs (1 − cos θ)', cpPlotFitX: '1 − cos θ', cpUnshift: '안 바뀐 선', cpShifted: '바뀐 선',
+  cpME: '광자 에너지 E', cpMLam: '입사 파장 λ₀', cpMShiftT: '이론 Δλ', cpMShiftTs: '(h/mc)(1 − cos θ)', cpMShiftS: '측정 Δλ', cpMShiftSs: '바뀐 선 봉우리 − λ₀',
+  cpMUnres: '분리 안 됨 (각도가 작음)', cpMEp: '산란 광자 E\'', cpMTe: '튕겨 나간 전자', cpMRatio: '안 바뀐 선 / 바뀐 선', cpMRatios: '결합된 전자의 간섭성 산란 비율',
+  cpMFit: '측정한 콤프턴 파장 h/mc', cpMFits: '{n}개 각도의 기울기 (참값 0.02426 Å)', cpMFitNone: '두 각도 이상 측정하세요', cpMCounts: '검출된 광자',
+  cpGuide: [['#7fd7ff', '파란 점 = 원래 파장의 광자'], ['#ff8a7a', '붉은 점 = 파장이 늘어난 광자 (에너지 잃음)'], ['#ffb454', '주황 = 콤프턴 공식 예측'], ['#6fe0c0', '청록 = 클라인–니시나 이론 각도 분포']],
+  eL1t: '전자도 파동이다', eL1: '<p>드브로이(1924)는 운동량 p인 입자에 파장 λ = h/p가 있다고 했습니다. 전압 V로 가속한 전자는 λ = h/√(2meV) — 54 V면 1.67 Å, 결정 속 원자 간격과 비슷합니다.</p><p>그래서 결정은 전자에게 회절격자가 됩니다. 표면의 원자 줄 간격 D에서 반사된 파동들의 경로차가 파장의 정수배가 되는 각도에서만 보강됩니다.</p><div class="eq">D sin φ = n λ</div>',
+  eL2t: '데이비슨–거머 실험 (1927)', eL2: '<p>니켈 결정에 전자를 쏘고 각도별로 튕겨 나온 전자 수를 셌더니, 54 eV에서 50° 방향에 뚜렷한 봉우리가 나타났습니다. 니켈 표면의 원자 간격 2.15 Å을 넣으면 D sinφ = λ가 예측하는 각도가 50.9°입니다.</p><p>이 실험실은 2차원 모형이지만, 슈뢰딩거 방정식으로 전자 파동을 직접 흩어 같은 봉우리가 나오는지, 그리고 에너지 스캔으로 54 eV 근처에서 가장 강해지는지 확인합니다.</p>',
+  xL1t: 'X선과 브래그 법칙', xL1: '<p>X선 파장(약 1 Å)은 결정 속 원자 면 사이 간격 d와 비슷합니다. 평행한 원자 면에서 반사된 X선의 경로차 2d sinθ가 파장의 정수배일 때만 보강됩니다.</p><div class="eq">2 d sin θ = n λ</div><p>분말 시료에는 결정 알갱이가 모든 방향으로 놓여 있어서, 각 반사가 원뿔이 되고 검출기에는 고리로 찍힙니다.</p>',
+  xL2t: '세기는 원자 배치를 말해 준다', xL2: '<p>같은 면심입방 격자라도 단위세포 안에 어떤 원자가 어디 있느냐에 따라 반사마다 파동이 보강되거나 상쇄됩니다. 이것이 구조 인자 F<sub>hkl</sub>입니다.</p><p>KCl은 K⁺와 Cl⁻의 전자 수(18)가 같아 X선에게는 거의 같은 원자처럼 보이고, 그래서 (111) 같은 홀수 반사가 사라집니다. NaCl에서는 약하게 남습니다. 시뮬은 이 공식을 쓰지 않고 모든 원자 쌍을 더해서 같은 결과가 나오는지 확인합니다.</p>',
+  dL1t: '나선은 X자를 만든다', dL1: '<p>나선을 옆에서 보면 지그재그 두 방향의 줄이 겹친 모양입니다. 그래서 회절 무늬는 X자가 되고, 피치 P마다 반복되므로 Z = l/P 간격의 가로줄(층선) 위에만 빛이 모입니다.</p><p>층선 l 위의 세기는 베셀 함수 J<sub>l</sub>(2πRr)를 따르고, 번호가 클수록 봉우리가 바깥으로 밀려 X자의 팔이 됩니다.</p>',
+  dL2t: '사진 51이 알려 준 것', dL2: '<p>프랭클린의 사진 51에서 층선 간격으로 피치 34 Å, 위아래 끝의 강한 자오선 반사로 염기쌍 간격 3.4 Å(한 바퀴 10쌍)을 읽을 수 있습니다.</p><p>그리고 4번째 층선이 빠져 있습니다. 두 가닥이 피치의 3/8만큼 어긋나 있으면 l = 4에서 두 가닥의 파동이 상쇄되기 때문입니다. 이것이 큰 홈과 작은 홈이 있는 이중 나선의 증거였습니다. ‘홈 크기 같음’과 ‘한 가닥’ 모형과 비교해 보세요.</p>',
+  cL1t: '빛은 운동량을 가진 입자다', cL1: '<p>고전 파동 이론에서는 흩어진 빛의 파장이 바뀌지 않아야 합니다. 그런데 콤프턴(1923)은 흑연에 X선을 쏘고 산란된 X선의 파장이 각도에 따라 늘어나는 것을 발견했습니다.</p><p>광자를 에너지 E = hc/λ, 운동량 p = h/λ인 입자로 보고 전자와의 충돌에 에너지·운동량 보존을 적용하면 정확히 이 식이 나옵니다.</p><div class="eq">Δλ = (h / m<sub>e</sub>c)(1 − cos θ)</div>',
+  cL2t: '안 바뀐 선과 바뀐 선', cL2: '<p>스펙트럼에는 봉우리가 두 개 있습니다. 원자에 단단히 묶인 전자에서는 원자 전체가 반동해 파장이 거의 그대로인 선이, 느슨한 전자와는 바뀐 선이 생깁니다. 각도가 클수록 바뀐 선이 강해집니다.</p><p>바뀐 선이 넓은 이유는 전자가 원자 안에서 움직이고 있기 때문입니다(도플러 넓어짐). 여러 각도에서 측정해 Δλ를 1 − cos θ에 대해 그리면 기울기가 바로 콤프턴 파장 h/mc입니다.</p>'
+});
+Object.assign(I18N.en, {
+  tagline: 'Five experiments showing that light and electrons are both waves and particles', learn: '? How it works', hSetup: 'Apparatus', hTheory: 'Theory', fire: '▶ Fire',
+  tabSlit: 'Double slit', tabElectron: 'Electron diffraction', tabXray: 'X-ray diffraction', tabDna: 'DNA diffraction', tabCompton: 'Compton effect',
+  leadSlit: '<b>Double slit</b> · Solve the Schrödinger equation, watch the wave pass through both slits at once, then fire particles one at a time and see whether the dots form the pattern.',
+  leadElectron: '<b>Electron diffraction</b> · Electrons fired at a crystal bounce off only at certain angles. In 1927 Davisson and Germer found a peak at 50° for 54 eV electrons, proving electrons are waves.',
+  leadXray: '<b>X-ray powder diffraction</b> · X-rays on tiny crystal grains give rings only at angles meeting Bragg\'s condition 2d sinθ = λ. Ring positions give atomic spacings; intensities give the arrangement.',
+  leadDna: '<b>DNA fibre diffraction</b> · Rosalind Franklin\'s Photo 51 (1952). A helix makes an X; the layer-line spacing and a missing layer line reveal a 34 Å pitch, two strands and the grooves.',
+  leadCompton: '<b>Compton effect</b> · An X-ray photon hitting an electron like a billiard ball comes out with a longer wavelength, Δλ = (h/mc)(1 − cos θ): evidence that light is a particle with momentum.',
+  footX: 'X-ray powder diffraction · Debye scattering equation (every atom pair in the grain) · Cromer–Mann form factors · unpolarised beam', footD: 'DNA fibre diffraction · direct sum over every scatterer, averaged round the fibre axis · small-angle approximation (Ewald curvature ignored)', footC: 'Compton scattering · Klein–Nishina cross section · 4-momentum conservation · impulse-approximation electron momenta',
+  resume: '▶ Resume', compute: '▶ Compute & measure', measure: '▶ Start measurement', measuring: 'Measuring…',
+  elPart: '● Fire electrons', phPart: '● Fire photons', partStop: '■ Stop', partWait: 'Computing…',
+  lgSim: 'Simulation (wave)', lgHist: 'Dot histogram', lgFr: 'Fraunhofer', lgHu: 'Huygens (near field)',
+  elLgSim: 'Simulation (Schrödinger)', elLgHist: 'Detected electrons', elLgFr: 'D sinφ = λ (theory angle)', elLgHu: 'Kinematic theory (1st Born)',
+  xrLgSim: 'Debye sum (every atom)', xrLgHist: 'Photon histogram', xrLgFr: 'Bragg + structure factor (theory)',
+  dnLgSim: 'Intensity (sum over every atom)', dnLgHist: 'Photons (film)', dnLgHu: 'Helical diffraction theory (CCV)',
+  cpLgSim: 'Measured spectrum (photon counts)', cpLgFr: 'Compton formula', cpLgHu: 'Theory line shape',
+  hScan: 'Energy scan', hSample: 'Sample', hSource: 'Source', hModel: 'Molecule model', hDetector: 'Detector',
+  elP54: '54 eV (Davisson–Germer)', elP30: '30 eV', elP100: '100 eV', elE: 'Accelerating voltage V',
+  elEH: 'Electron wavelength λ = h/√(2meV) ≈ 12.26/√V Å · higher voltage, shorter wavelength, smaller angle',
+  elCrystal: 'Crystal', elCrystalV: '2-D square lattice modelled on a nickel surface · spacing D = 2.15 Å, 4 layers',
+  elScan: 'Energy scan (30 → 90 eV)', elScanStop: '■ Stop scan', elScanNote: 'Step the voltage and measure the strength of the first-order beam, as Davisson and Germer did.',
+  elScanAxis: 'Voltage (eV)', elScanY: 'first-order share', elScanPeak: 'Maximum: sim {s} eV · kinematic {k} eV · experiment (1927) 54 eV',
+  elFormula: 'D sin φ = n λ<br>λ = h / √(2 m e V)',
+  elFormulaN: 'The surface rows of atoms act as a grating; φ is measured from the incident direction (surface normal)',
+  elMsgFire: 'Press ▶ Fire to send an electron wave packet at the crystal', elMsgRun: 'The electron wave scatters off the atoms…', elMsgDone: 'Done — the polar plot on the right shows the angular distribution. Try ● Fire electrons',
+  elMsgScan: 'Energy scan {i}/{n}: {e} eV',
+  elOvCrystal: 'crystal (D = 2.15 Å)', elOvGun: 'electron', elOvTheory: 'theory', elDetTitle: 'Angular distribution (polar)', elDetSpec: 'specular',
+  elMLam: 'Electron wavelength λ', elMLamS: 'h/√(2meV)', elMTh: 'Theory angle φ₁', elMThS: 'arcsin(λ/D)', elMSim: 'Simulated peak angle', elMSimS: 'from the momentum distribution of the reflected wave',
+  elMKin: 'Kinematic theory peak', elMKinS: 'same lattice and beam, no multiple scattering', elMFrac: 'First-order share', elMFracS: 'reflected probability within ±5° of the peak',
+  elMDG: 'Real experiment (1927)', elMDGv: '54 eV → 50°', elMDGs: 'nickel single crystal, Davisson–Germer', elMNone: 'none (λ > D)', elMDots: 'Electrons detected',
+  elGuide: [['linear-gradient(90deg,#ff7070,#9be35a,#3fd0d0,#8d6bff)', 'Electron wave ψ: colour = phase, brightness = size'], ['#cfd7e6', 'White dots = crystal atoms (repulsive potential)'], ['#ffb454', 'Orange dashes = angle predicted by D sinφ = λ'], ['#f2f5fa', 'Right: angular distribution of reflected electrons']],
+  xrSize: 'Grain diameter', xrSizeH: 'smaller grains, broader rings (Scherrer) · every atom in a ball of this size is computed',
+  xrTubeNote: 'Characteristic X-ray wavelength. Shorter-wavelength Mo squeezes the same rings to smaller angles',
+  xrCrystalNotes: { NaCl: 'rock salt (fcc, two atoms), a = 5.640 Å', KCl: 'rock salt, a = 6.292 Å · K⁺ and Cl⁻ have equal electron counts, so odd reflections vanish', Si: 'diamond, a = 5.431 Å · (200) and (222) absent', Cu: 'face-centred cubic, a = 3.615 Å · h,k,l all odd or all even only', CsCl: 'simple cubic, two atoms (B2), a = 4.123 Å · no absences' },
+  xrFormula: '2 d sin θ = λ,  d = a / √(h² + k² + l²)<br>I ∝ m |F<sub>hkl</sub>|² · (1 + cos²2θ) / (sin²θ cosθ)',
+  xrFormulaN: 'F = Σ f<sub>j</sub>(s) e<sup>−Bs²</sup> e<sup>2πi(hx+ky+lz)</sup> · the simulation does not use this formula: it sums every atom pair in the grain (Debye equation)',
+  xrMsgFire: 'Press ▶ Compute & measure: diffraction from every atom of the grain, then a 2θ scan', xrMsgCalc: 'Pair distances of {n} atoms…', xrMsgScan: 'The detector scans 2θ…', xrMsgDone: 'Done — try ● Fire photons and watch the rings build up',
+  xrViewTitle: '2-D detector (radius ∝ 2θ)', xrPlotX: '2θ (degrees)', xrPlotY: 'intensity',
+  xrMA: 'Measured lattice constant a', xrMAs: 'simulated peak positions → a = d√(h²+k²+l²)', xrMN: 'Atoms in the grain', xrMTable: 'Reflections', xrMAbs: 'Absent reflections', xrMDots: 'Photons detected', xrMTV: 'Photons ↔ computed distribution',
+  xrTh: ['hkl', 'd (Å)', '2θ theory', '2θ sim', 'I theory', 'I sim'],
+  xrGuide: [['#f2f5fa', 'White curve = sum of waves scattered by every atom (Debye equation)'], ['#ffb454', 'Orange sticks = reflections predicted by Bragg + structure factor'], ['#5d687d', 'Grey × = reflections cancelled by the structure factor'], ['#bfe6ff', 'Left: one photon = one dot; together they make rings']],
+  dnB: 'B form (Photo 51)', dnA: 'A form', dnSingle: 'Single strand', dnEven: 'Equal grooves', dnPitch: 'Helix pitch P', dnBp: 'Base pairs per turn', dnR: 'Phosphate radius r', dnOff: 'Strand offset (fraction of pitch)',
+  dnOffH: 'B-DNA: 3/8 = 0.375 (minor ↔ major groove). At 0.5 both grooves are equal', dnTwo: 'Double helix (two strands)',
+  dnFormula: 'Z = l / P  (layer lines)<br>I<sub>l</sub>(R) = Σ<sub>n = l − u·m</sub> |Σ f<sub>j</sub> J<sub>n</sub>(2πR r<sub>j</sub>) e<sup>−inφ<sub>j</sub></sup>|²',
+  dnFormulaN: 'Cochran–Crick–Vand (1952). u = base pairs per turn. Two strands offset by Δ of the pitch multiply layer line l by cos²(πlΔ), so Δ = 3/8 removes l = 4',
+  dnMsgFire: 'Press ▶ Compute & measure: X-rays scattered by every atom of the molecule are added up into a fibre pattern', dnMsgCalc: 'Direct sum over {n} scatterers…', dnMsgDone: 'Done — try ● Fire photons and watch Photo 51 build up on the film',
+  dnViewTitle: 'Fibre diffraction film', dnAxisZ: 'Z (fibre axis)', dnAxisR: 'R', dnMissing: '4th layer line weak', dnPlotBars: 'Layer-line intensity (l = 1 …)', dnPlotProf: 'Intensity along layer lines l = 1, 2, 3 (R)',
+  dnMP: 'Layer spacing → pitch P', dnMPs: 'from the spacing of Z = l/P', dnMRise: 'Meridional reflection → base-pair rise', dnMRises: 'meridional peak on layer line l = u', dnMI43: 'Ratio I₄ / I₃', dnMI43s: 'how weak the 4th layer line is',
+  dnMR: 'Effective radius', dnMRs: 'first peak R₁ on layer line 1 → 1.841 / (2πR₁)', dnMCorr: 'Layer-line match r', dnMCorrs: 'l = 1 … u, simulation vs theory', dnMDots: 'Photons detected',
+  dnGuide: [['#ffd27f', 'Bright spots = directions of strong diffraction'], ['#ffb454', 'Orange = layer line l (Z = l / P)'], ['#f2f5fa', 'White bars = simulation (direct sum over every atom)'], ['#6fe0c0', 'Teal = helical diffraction theory (Bessel functions)']],
+  cpTarget: 'Target', cpC: 'Graphite (C)', cpAl: 'Aluminium', cpFree: 'Electron at rest', cpTh: 'Scattering angle θ', cpThH: 'where the detector sits; larger angle, larger wavelength shift',
+  cpRes: 'Spectrometer resolution σ', cpResH: 'wavelength resolution of the crystal spectrometer (mÅ = 0.001 Å)', cpN: 'Photons per measurement',
+  cpFormula: 'Δλ = λ\' − λ = (h / m<sub>e</sub>c)(1 − cos θ)<br>dσ/dΩ = ½ r<sub>e</sub>² P² (P + 1/P − sin²θ)',
+  cpFormulaN: 'h/m<sub>e</sub>c = 0.02426 Å (Compton wavelength), P = E\'/E. The simulation solves each collision with a moving electron from 4-momentum conservation',
+  cpMsgFire: 'Press ▶ Start measurement: photons are fired one at a time and those scattered towards θ are wavelength-analysed', cpMsgRun: 'Measuring — photon {n} / {N}', cpMsgDone: 'Done — change the angle and measure again to add points to the lower-right plot',
+  cpViewTitle: 'Apparatus (seen from above)', cpOvSrc: 'X-rays', cpOvTarget: 'target', cpOvDet: 'detector', cpOvKN: 'angular distribution: white = sim, teal = theory',
+  cpPlotSpec: 'Detector spectrum (θ = {th}°)', cpPlotX: 'wavelength λ\' (Å)', cpPlotFit: 'Δλ vs (1 − cos θ)', cpPlotFitX: '1 − cos θ', cpUnshift: 'unshifted', cpShifted: 'shifted',
+  cpME: 'Photon energy E', cpMLam: 'Incident wavelength λ₀', cpMShiftT: 'Theory Δλ', cpMShiftTs: '(h/mc)(1 − cos θ)', cpMShiftS: 'Measured Δλ', cpMShiftSs: 'shifted-line peak − λ₀',
+  cpMUnres: 'not resolved (angle too small)', cpMEp: 'Scattered photon E\'', cpMTe: 'Recoil electron', cpMRatio: 'Unshifted / shifted', cpMRatios: 'coherent scattering by bound electrons',
+  cpMFit: 'Measured Compton wavelength h/mc', cpMFits: 'slope from {n} angles (true 0.02426 Å)', cpMFitNone: 'measure at two or more angles', cpMCounts: 'Photons detected',
+  cpGuide: [['#7fd7ff', 'Blue dots = photons at the original wavelength'], ['#ff8a7a', 'Red dots = photons with a longer wavelength (lost energy)'], ['#ffb454', 'Orange = Compton formula prediction'], ['#6fe0c0', 'Teal = Klein–Nishina angular distribution']],
+  eL1t: 'Electrons are waves too', eL1: '<p>De Broglie (1924): a particle of momentum p has a wavelength λ = h/p. An electron accelerated through V volts has λ = h/√(2meV): 1.67 Å at 54 V, about the spacing of atoms in a crystal.</p><p>So a crystal is a diffraction grating for electrons. Waves reflected by surface rows spaced D apart add up only where their path difference is a whole number of wavelengths.</p><div class="eq">D sin φ = n λ</div>',
+  eL2t: 'Davisson–Germer (1927)', eL2: '<p>They fired electrons at a nickel crystal and counted them by angle: at 54 eV a clear peak appeared at 50°. With nickel\'s surface spacing of 2.15 Å, D sinφ = λ predicts 50.9°.</p><p>This lab is a 2-D model, but it scatters the electron wave with the Schrödinger equation itself, so you can check that the same peak appears, and use the energy scan to see where it is strongest.</p>',
+  xL1t: 'X-rays and Bragg\'s law', xL1: '<p>X-ray wavelengths (about 1 Å) match the spacing d between planes of atoms. X-rays reflected from parallel planes add up only when the path difference 2d sinθ is a whole number of wavelengths.</p><div class="eq">2 d sin θ = n λ</div><p>A powder has grains pointing every way, so each reflection becomes a cone and the detector records a ring.</p>',
+  xL2t: 'Intensities reveal the arrangement', xL2: '<p>For the same fcc lattice, which atoms sit where in the unit cell decides whether waves add or cancel for each reflection: the structure factor F<sub>hkl</sub>.</p><p>In KCl, K⁺ and Cl⁻ both have 18 electrons, so X-rays see almost identical atoms and odd reflections like (111) vanish. In NaCl they stay, weakly. The simulation does not use the formula: it adds every atom pair and checks the same result comes out.</p>',
+  dL1t: 'A helix makes an X', dL1: '<p>Seen from the side, a helix is two families of zigzag lines. So its diffraction is an X, and because it repeats every pitch P, the light gathers on horizontal layer lines at Z = l/P.</p><p>On layer line l the intensity follows the Bessel function J<sub>l</sub>(2πRr); higher l pushes the first peak outwards, which draws the arms of the X.</p>',
+  dL2t: 'What Photo 51 told us', dL2: '<p>From Franklin\'s Photo 51: the layer spacing gives a 34 Å pitch, the strong meridional reflection at the top and bottom gives a 3.4 Å rise (10 pairs per turn).</p><p>And the 4th layer line is missing. If the two strands are offset by 3/8 of the pitch, their waves cancel on l = 4: evidence for a double helix with major and minor grooves. Compare with the \'equal grooves\' and \'single strand\' models.</p>',
+  cL1t: 'Light is a particle with momentum', cL1: '<p>Classical wave theory says scattered light keeps its wavelength. Compton (1923) shone X-rays on graphite and found the scattered wavelength grew with angle.</p><p>Treat the photon as a particle with energy E = hc/λ and momentum p = h/λ, apply energy and momentum conservation to the collision with an electron, and exactly this formula comes out.</p><div class="eq">Δλ = (h / m<sub>e</sub>c)(1 − cos θ)</div>',
+  cL2t: 'The unshifted and the shifted line', cL2: '<p>The spectrum has two peaks. Tightly bound electrons make the whole atom recoil, so the wavelength barely changes; loose electrons give the shifted line. The larger the angle, the stronger the shifted line.</p><p>The shifted line is broad because electrons move inside the atom (Doppler broadening). Measure at several angles and plot Δλ against 1 − cos θ: the slope is the Compton wavelength h/mc.</p>'
+});
+'use strict';
+/* =====================================================================
+   Lab shell: experiment tabs, shared transport bar, loop, learn cards, hash
+   Every experiment is a controller with the same interface:
+   stage (1 = Schrödinger grid, 2 = view + plot), enter, leave, fire, pause, reset, part, tick, buttons, lang, hash
+   ===================================================================== */
+var X = { cur: 'slit', rate: 20, ctl: {}, order: ['slit', 'electron', 'xray', 'dna', 'compton'] };
+function C() { return X.ctl[X.cur]; }
+function $$(s) { return document.querySelectorAll(s); }
+function press(sel, fn) { $$(sel).forEach(function (b) { b.setAttribute('aria-pressed', String(!!fn(b))); }); }
+function updateButtons() { if (X.ctl[X.cur]) X.ctl[X.cur].buttons(); }
+function setButtons(o) {
+  $('#fireBtn').textContent = o.fire; $('#fireBtn').disabled = !!o.fireDis; $('#pauseBtn').disabled = !!o.pauseDis;
+  $('#partGrp').style.display = o.part === undefined ? 'none' : '';
+  $('#partBtn').style.display = o.part ? '' : 'none';
+  if (o.part) { $('#partBtn').textContent = o.part; $('#partBtn').disabled = !!o.partDis; }
+  $('#viewSeg').style.display = o.view ? '' : 'none';
+}
+var msg2Timer = 0;
+function showMsg2(text, ms) { var m = $('#msg2'); m.textContent = text; m.classList.add('on'); clearTimeout(msg2Timer); if (ms) msg2Timer = setTimeout(function () { m.classList.remove('on'); }, ms); }
+function hideMsgs() { $('#msg').classList.remove('on'); $('#msg2').classList.remove('on'); }
+function setStatus(items) { $('#status').innerHTML = items.map(function (it) { return '<span>' + it[0] + ' <b>' + it[1] + '</b></span>'; }).join(''); }
+function mRow(k, ks, v, vs, cls) { return metricRow(k, ks, v, vs, cls); }
+function pctErr(sim, th) { return errPct(sim, th); }
+
+/* ---------- shared particle counter (Born-rule sampling from a 1-D weight array) ---------- */
+function Counter(nb, seed) { return { on: false, waiting: false, carry: 0, n: 0, hist: new Float64Array(nb), dots: [], rng: QSL.mulberry32(seed), cdf: null }; }
+function counterClear(k) { k.on = false; k.waiting = false; k.carry = 0; k.n = 0; k.hist.fill(0); k.dots = []; k.cdf = null; }
+function counterTake(k) { k.carry += X.rate / 60; var n = Math.floor(k.carry); k.carry -= n; return k.dots.length > 60000 ? 0 : n; }
+
+/* ---------- stage-2 canvases ---------- */
+var dpr2 = 1, dot2 = document.createElement('canvas'), dot2c = dot2.getContext('2d');
+function resize2() {
+  dpr2 = Math.min(window.devicePixelRatio || 1, 2.5);
+  ['c2a', 'c2b'].forEach(function (id) { var c = $('#' + id), r = c.getBoundingClientRect(); c.width = Math.max(1, Math.round(r.width * dpr2)); c.height = Math.max(1, Math.round(r.height * dpr2)); });
+  dot2.width = $('#c2a').width; dot2.height = $('#c2a').height; dot2c.clearRect(0, 0, dot2.width, dot2.height);
+  var c = C(); if (c && c.stage === 2) { if (c.resized) c.resized(); if (c.redrawDots) c.redrawDots(); }
+}
+function fnt(c, px, w, mono) { c.font = (w || 500) + ' ' + Math.round(px * dpr2) + 'px ' + (mono ? '"JetBrains Mono", monospace' : '"Noto Sans KR", sans-serif'); }
+// axes box b = {x, y, w, h}; xr = [x0, x1]; ticks = array of x values
+function axes(c, b, xr, ticks, xlabel, title, fmtTick) {
+  c.strokeStyle = 'rgba(255,255,255,.12)'; c.lineWidth = dpr2; c.strokeRect(b.x + 0.5, b.y + 0.5, b.w, b.h);
+  fnt(c, 10.5); c.fillStyle = 'rgba(139,151,173,.95)'; c.textAlign = 'center'; c.textBaseline = 'top';
+  ticks.forEach(function (v) { var X0 = b.x + (v - xr[0]) / (xr[1] - xr[0]) * b.w; c.fillRect(X0, b.y + b.h, dpr2, 4 * dpr2); c.fillText(fmtTick ? fmtTick(v) : String(v), X0, b.y + b.h + 6 * dpr2); });
+  if (xlabel) { c.textAlign = 'right'; c.fillText(xlabel, b.x + b.w, b.y + b.h + 20 * dpr2); }
+  if (title) { fnt(c, 11.5, 700); c.fillStyle = 'rgba(231,236,245,.9)'; c.textAlign = 'left'; c.textBaseline = 'bottom'; c.fillText(title, b.x, b.y - 6 * dpr2); }
+}
+function px(b, xr, v) { return b.x + (v - xr[0]) / (xr[1] - xr[0]) * b.w; }
+function heatRGB(v) {
+  v = Math.max(0, Math.min(1, v)); var st = [[8, 11, 18], [69, 26, 115], [204, 56, 89], [252, 158, 64], [255, 247, 199]], f = v * 4, i = Math.min(3, Math.floor(f)), t = f - i, a = st[i], b = st[i + 1];
+  return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+}
+function sampleW(cdf, rng) { return QSL.sampleCdf(cdf, rng()); }
+
+/* =====================================================================
+   1. DOUBLE SLIT — wraps the original app
+   ===================================================================== */
+X.ctl.slit = {
+  stage: 1, lead: 'leadSlit', learn: ['learn1', 'learn2', 'learn3', 'learn4'], guide: 'guide', legend: ['lgSim', 'lgHist', 'lgFr', 'lgHu'], foot: 'foot',
+  enter: function () { syncControls(); resize(); resetRun(); },
+  leave: function () { part.on = false; part.waiting = false; run.status = 'idle'; },
+  fire: fire,
+  pause: function () { if (run.status === 'running') { run.status = 'paused'; updateButtons(); } },
+  reset: function () { part.on = false; part.waiting = false; resetRun(); },
+  part: function () {
+    if (part.on || part.waiting) { part.on = false; part.waiting = false; updateButtons(); return; }
+    if (run.status === 'done') part.on = true; else { part.waiting = true; if (run.status !== 'running') fire(); }
+    updateButtons();
+  },
+  tick: function () { slitTick(); },
+  buttons: function () {
+    setButtons({ fire: run.status === 'paused' ? t('resume') : t('fire'), fireDis: run.status === 'running', pauseDis: run.status !== 'running',
+      part: part.waiting ? t('partWait') : part.on ? t('partStop') : t('partStart'), view: true });
+  },
+  lang: function () { syncControls(); lastMetrics = ''; renderMetrics(combined(), 0); drawStatus(); },
+  hash: function () { return QSL.encodeHash(S); }
+};
+function paramsChanged() { part.on = false; part.waiting = false; syncControls(); resetRun(); }
+
+/* =====================================================================
+   2. ELECTRON DIFFRACTION — Schrödinger grid, crystal of soft atoms
+   ===================================================================== */
+var EL = { E: 54, status: 'idle', p: null, sc: null, kin: null, spec: null, tSnap: 0, scan: null, k: Counter(181, 54), flashes: [] };
+function elSync() {
+  $('#elE').value = EL.E; var lam = QX.electronLambda(EL.E);
+  $('#elEOut').textContent = EL.E + ' eV · λ = ' + lam.toFixed(3) + ' Å';
+  press('#elPresets button', function (b) { return +b.dataset.e === EL.E; });
+  $('#elFormula').innerHTML = t('elFormula') + '<span class="fn">' + t('elFormulaN') + '</span>';
+  writeHash();
+}
+function elReset(keepScan) {
+  EL.p = QX.electronParams({ E: EL.E }, W, H); EL.sc = QX.crystalScene(EL.p);
+  engine.reset({ V: EL.sc.V, M: M_ABS, wall: EL.sc.wall, dt: QSL.stableDt(QSL.V_CAP), packet: { x0: EL.p.x0, y0: EL.p.y0, sigma: EL.p.sx, sigmaY: EL.p.sy, lambda: EL.p.lambda }, fluxX: 40 });
+  var v = 2 * Math.PI / EL.p.lambda * 0.97;
+  EL.tSnap = (EL.p.xs - EL.p.x0) / v + (2 * EL.p.layers * EL.p.C + 6 * EL.p.sx + 70) / v;
+  EL.kin = QX.kinematicAngular(EL.p, EL.sc.atoms); EL.spec = null; EL.status = 'idle';
+  if (!keepScan) EL.scan = null;
+  counterClear(EL.k); EL.flashes = []; dotCtx.clearRect(0, 0, dotLayer.width, dotLayer.height);
+  elSync(); updateButtons(); if (!keepScan) showMsg(t('elMsgFire')); elMetrics(); elScanDraw();
+}
+function elState() {
+  if (engine.kind === 'GPU') { var st = engine.readState(); return { R: st, I: st.subarray(1), Ip: st.subarray(2), stride: 4 }; }
+  return { R: engine.sim.R, I: engine.sim.I, Ip: engine.sim.Ip, stride: 1 };
+}
+function elAnalyse() {
+  var s = elState();
+  EL.spec = QX.backscatterSpectrum(s.R, s.I, s.Ip, W, H, EL.p.xs - 6, 2 * Math.PI / EL.p.lambda, s.stride);
+  EL.status = 'done';
+  if (EL.scan && EL.scan.active) { elScanRecord(); return; }
+  updateButtons(); showMsg(t('elMsgDone'), 5000); elMetrics();
+  if (EL.k.waiting) { EL.k.waiting = false; EL.k.on = true; updateButtons(); }
+}
+function share(bins, phi, half) {                       // fraction of the total in ±half° round ±phi
+  var s = 0, tot = 0, b; for (b = 0; b <= 180; b++) tot += bins[b];
+  for (b = 0; b <= 180; b++) { var a = Math.abs(b - 90); if (Math.abs(a - phi) <= half) s += bins[b]; }
+  return tot > 0 ? s / tot : 0;
+}
+function elFirst() { var a = QX.dgAngles(EL.p); return a.length ? a[0].phi : null; }
+function elSimPeak() {
+  if (!EL.spec) return null; var th = elFirst(); if (th == null) return null;
+  var pk = QX.peakAngle(EL.spec.bins, 8, 88); return pk;
+}
+/* energy scan: Davisson–Germer's measurement of the first-order beam against voltage */
+function elScanStart() {
+  if (EL.scan && EL.scan.active) { EL.scan.active = false; elReset(true); $('#elScanBtn').textContent = t('elScan'); return; }
+  var Es = []; for (var e = 30; e <= 90; e += 4) Es.push(e);
+  EL.scan = { active: true, Es: Es, i: 0, sim: [], kin: [] }; $('#elScanBtn').textContent = t('elScanStop');
+  EL.E = Es[0]; elReset(true); EL.status = 'running'; showMsg(t('elMsgScan', { i: 1, n: Es.length, e: Es[0] }), 0); updateButtons();
+}
+function elScanRecord() {
+  var sc = EL.scan, th = elFirst();
+  sc.sim.push(th == null ? 0 : share(EL.spec.bins, th, 5)); sc.kin.push(th == null ? 0 : share(EL.kin, th, 5));
+  sc.i++; elScanDraw();
+  if (sc.i >= sc.Es.length) { sc.active = false; $('#elScanBtn').textContent = t('elScan'); EL.E = 54; elReset(true); hideMsgs(); elMetrics(); return; }
+  EL.E = sc.Es[sc.i]; elReset(true); EL.status = 'running'; showMsg(t('elMsgScan', { i: sc.i + 1, n: sc.Es.length, e: EL.E }), 0); updateButtons();
+}
+function elScanDraw() {
+  var cvs = $('#elScan'), r = cvs.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2.5);
+  if (r.width < 2) return; cvs.width = Math.round(r.width * d); cvs.height = Math.round(r.height * d);
+  var c = cvs.getContext('2d'), w = cvs.width, h = cvs.height, b = { x: 34 * d, y: 14 * d, w: w - 46 * d, h: h - 44 * d }, xr = [28, 92];
+  c.clearRect(0, 0, w, h); var save = dpr2; dpr2 = d;
+  axes(c, b, xr, [30, 40, 50, 60, 70, 80, 90], t('elScanAxis'), null);
+  c.save(); c.translate(10 * d, b.y + b.h / 2); c.rotate(-Math.PI / 2); fnt(c, 10); c.fillStyle = 'rgba(139,151,173,.9)'; c.textAlign = 'center'; c.fillText(t('elScanY'), 0, 0); c.restore();
+  // 54 eV marker (Davisson–Germer)
+  c.strokeStyle = 'rgba(255,180,84,.6)'; c.setLineDash([3 * d, 3 * d]); c.beginPath(); c.moveTo(px(b, xr, 54), b.y); c.lineTo(px(b, xr, 54), b.y + b.h); c.stroke(); c.setLineDash([]);
+  var sc = EL.scan;
+  if (sc && sc.sim.length) {
+    var ms = Math.max.apply(null, sc.sim) || 1, mk = Math.max.apply(null, sc.kin) || 1;
+    [[sc.kin, mk, '#6fe0c0'], [sc.sim, ms, '#f2f5fa']].forEach(function (L) {
+      c.strokeStyle = L[2]; c.fillStyle = L[2]; c.lineWidth = 1.5 * d; c.beginPath();
+      L[0].forEach(function (v, i) { var X0 = px(b, xr, sc.Es[i]), Y = b.y + b.h - v / L[1] * b.h * 0.92; if (i) c.lineTo(X0, Y); else c.moveTo(X0, Y); }); c.stroke();
+      L[0].forEach(function (v, i) { c.beginPath(); c.arc(px(b, xr, sc.Es[i]), b.y + b.h - v / L[1] * b.h * 0.92, 2.2 * d, 0, 7); c.fill(); });
+    });
+    if (!sc.active) {
+      var bs = 0, bk = 0; sc.sim.forEach(function (v, i) { if (v > sc.sim[bs]) bs = i; }); sc.kin.forEach(function (v, i) { if (v > sc.kin[bk]) bk = i; });
+      $('#elScanNote').textContent = t('elScanPeak', { s: sc.Es[bs], k: sc.Es[bk] });
+    }
+  } else $('#elScanNote').textContent = t('elScanNote');
+  dpr2 = save;
+}
+function elTick() {
+  if (EL.status === 'running') {
+    var steps = (EL.k.waiting || (EL.scan && EL.scan.active)) ? 140 : S.speed; if (engine.kind === 'CPU') steps = Math.max(2, Math.round(steps / 8));
+    engine.step(steps); if (engine.t >= EL.tSnap) elAnalyse();
+  }
+  if (EL.k.on && EL.spec) elEmit();
+  elDraw();
+}
+function elEmit() {
+  var k = EL.k; if (!k.cdf) k.cdf = QSL.buildCdf(EL.spec.bins); if (!k.cdf) return;
+  var n = counterTake(k);
+  for (var i = 0; i < n; i++) {
+    var b = Math.min(180, Math.floor(sampleW(k.cdf, k.rng))), phi = b - 90 + k.rng() - 0.5, d = { phi: phi, r: k.rng() };
+    k.dots.push(d); k.hist[b]++; elDot(d); if (EL.flashes.length < 12) EL.flashes.push({ phi: phi, life: 1 });
+  }
+  if (n) elMetrics();
+}
+function elPolar() { var w = cv.dw, h = cv.dh; return { cx: w - 14 * dpr, cy: h / 2, R: Math.max(20, Math.min(w - 50 * dpr, h / 2 - 44 * dpr)) }; }
+function elDot(d) {
+  var g = elPolar(), r = g.R + (6 + 10 * d.r) * dpr, a = d.phi * Math.PI / 180;
+  dotCtx.fillStyle = '#bfe6ff'; dotCtx.globalAlpha = Math.max(0.08, Math.min(0.9, 1200 / (EL.k.dots.length + 1200)));
+  dotCtx.fillRect(g.cx - r * Math.cos(a), g.cy + r * Math.sin(a), Math.max(1, 1.3 * dpr), Math.max(1, 1.3 * dpr)); dotCtx.globalAlpha = 1;
+}
+function elRedrawDots() { dotLayer.width = cv.dw; dotLayer.height = cv.dh; dotCtx.clearRect(0, 0, dotLayer.width, dotLayer.height); EL.k.dots.forEach(elDot); }
+function elDraw() {
+  var mode = S.view === 'phase' ? 0 : S.view === 'prob' ? 1 : 2;
+  engine.draw(mode, S.gain, cv.ww, cv.wh);
+  // ---- overlay
+  var c = $('#ovCanvas').getContext('2d'), w = cv.ww, h = cv.wh, sx = w / W, sy = h / H, fs = Math.round(Math.max(10, Math.min(13, w / dpr / 58)) * dpr), p = EL.p;
+  c.clearRect(0, 0, w, h); c.font = '500 ' + fs + 'px "Noto Sans KR", sans-serif';
+  c.fillStyle = 'rgba(231,236,245,.8)'; c.textAlign = 'left'; c.textBaseline = 'top'; c.fillText(t('elOvCrystal'), (p.xs - 4) * sx, (LO + 2) * sy);
+  var ox = (p.xs - 3) * sx, oy = (H / 2) * sy;
+  if (EL.status === 'idle') {
+    var gx = p.x0 * sx, gy = p.y0 * sy; c.strokeStyle = 'rgba(255,255,255,.75)'; c.lineWidth = 1.5 * dpr;
+    c.beginPath(); c.moveTo(gx + 30 * sx, gy); c.lineTo(gx + 60 * sx, gy); c.stroke();
+    c.beginPath(); c.moveTo(gx + 60 * sx, gy); c.lineTo(gx + 60 * sx - 6 * dpr, gy - 4 * dpr); c.lineTo(gx + 60 * sx - 6 * dpr, gy + 4 * dpr); c.closePath(); c.fillStyle = 'rgba(255,255,255,.75)'; c.fill();
+    c.textAlign = 'center'; c.fillStyle = 'rgba(231,236,245,.85)'; c.fillText(t('elOvGun') + ' ' + EL.E + ' eV · λ = ' + p.lamA.toFixed(2) + ' Å', gx + 20 * sx, gy + p.sy * 2.2 * sy);
+  }
+  if (layers.fr) QX.dgAngles(p).forEach(function (a) {
+    var r = a.phi * Math.PI / 180, L = 250 * sx; c.strokeStyle = 'rgba(255,180,84,.85)'; c.lineWidth = 1.3 * dpr; c.setLineDash([6 * dpr, 5 * dpr]);
+    [1, -1].forEach(function (sg) { c.beginPath(); c.moveTo(ox, oy); c.lineTo(ox - L * Math.cos(r), oy + sg * L * Math.sin(r)); c.stroke(); }); c.setLineDash([]);
+    c.fillStyle = 'rgba(255,180,84,.95)'; c.textAlign = 'right'; c.textBaseline = 'bottom';
+    c.fillText(t('elOvTheory') + ' φ' + (a.n > 1 ? a.n : '₁') + ' = ' + a.phi.toFixed(1) + '°', ox - L * 0.55 * Math.cos(r) - 6 * dpr, oy - L * 0.55 * Math.sin(r) - 4 * dpr);
+  });
+  // ---- polar detector
+  var d = $('#detCanvas').getContext('2d'), dw = cv.dw, dh = cv.dh, g = elPolar();
+  d.clearRect(0, 0, dw, dh); d.drawImage(dotLayer, 0, 0);
+  d.strokeStyle = 'rgba(255,255,255,.12)'; d.lineWidth = dpr;
+  [0.5, 1].forEach(function (f) { d.beginPath(); d.arc(g.cx, g.cy, g.R * f, Math.PI / 2, 3 * Math.PI / 2); d.stroke(); });
+  d.font = '500 ' + Math.round(10 * dpr) + 'px "Noto Sans KR", sans-serif'; d.fillStyle = 'rgba(139,151,173,.9)';
+  [-60, -30, 0, 30, 60].forEach(function (a) { var r = a * Math.PI / 180; d.beginPath(); d.moveTo(g.cx, g.cy); d.lineTo(g.cx - g.R * Math.cos(r), g.cy + g.R * Math.sin(r)); d.stroke();
+    d.textAlign = 'center'; d.textBaseline = 'middle'; d.fillText(Math.abs(a) + '°', g.cx - (g.R + 26 * dpr) * Math.cos(r), g.cy + (g.R + 26 * dpr) * Math.sin(r)); });
+  function polar(bins, col, wdt, dash) {
+    var m = 0, b; for (b = 0; b <= 180; b++) if (Math.abs(b - 90) >= 8) m = Math.max(m, bins[b]); if (!(m > 0)) return;
+    d.strokeStyle = col; d.lineWidth = wdt * dpr; d.setLineDash(dash ? [4 * dpr, 3 * dpr] : []); d.beginPath();
+    for (b = 0; b <= 180; b++) { var r = Math.min(1, bins[b] / m) * g.R, a = (b - 90) * Math.PI / 180, X0 = g.cx - r * Math.cos(a), Y = g.cy + r * Math.sin(a); if (b) d.lineTo(X0, Y); else d.moveTo(X0, Y); }
+    d.stroke(); d.setLineDash([]);
+  }
+  if (layers.fr) QX.dgAngles(EL.p).forEach(function (a) { var r = a.phi * Math.PI / 180; d.strokeStyle = 'rgba(255,180,84,.8)'; d.setLineDash([4 * dpr, 4 * dpr]);
+    [1, -1].forEach(function (sg) { d.beginPath(); d.moveTo(g.cx, g.cy); d.lineTo(g.cx - g.R * Math.cos(r), g.cy + sg * g.R * Math.sin(r)); d.stroke(); }); d.setLineDash([]); });
+  if (layers.hu && EL.kin && EL.status === 'done') polar(EL.kin, '#6fe0c0', 1.3, true);
+  if (layers.hist && EL.k.n) { var hs = new Float64Array(181); for (var i = 0; i <= 180; i++) hs[i] = EL.k.hist[i]; polar(hs, 'rgba(191,230,255,.6)', 1, false); }
+  if (layers.sim && EL.spec) polar(EL.spec.bins, '#f2f5fa', 1.6, false);
+  for (var k = EL.flashes.length - 1; k >= 0; k--) { var f = EL.flashes[k]; f.life -= 0.05; if (f.life <= 0) { EL.flashes.splice(k, 1); continue; }
+    var ar = f.phi * Math.PI / 180, rr = g.R + 11 * dpr; d.fillStyle = 'rgba(220,240,255,' + f.life.toFixed(2) + ')'; d.beginPath(); d.arc(g.cx - rr * Math.cos(ar), g.cy + rr * Math.sin(ar), (1.5 + 2.5 * (1 - f.life)) * dpr, 0, 7); d.fill(); }
+  d.fillStyle = 'rgba(231,236,245,.85)'; d.textAlign = 'center'; d.textBaseline = 'top'; d.fillText(t('elDetTitle'), dw / 2, 8 * dpr);
+  d.fillStyle = 'rgba(139,151,173,.9)'; d.textBaseline = 'bottom'; d.fillText('0° = ' + t('elDetSpec'), dw / 2, dh - 8 * dpr);
+  if (run.frame++ % 6 === 0) setStatus([[t('stInside'), (engine.norm ? (EL.status === 'idle' ? 1 : engine.norm()).toFixed(3) : '—')], ['t', engine.t.toFixed(0)], ['dt', engine.dt.toFixed(2)], ['E', EL.E + ' eV'], [t('stEngine'), engine.kind]]);
+}
+function elMetrics() {
+  if (!EL.p) return;
+  var p = EL.p, th = elFirst(), html = '';
+  html += mRow(t('elMLam'), t('elMLamS'), p.lamA.toFixed(3) + ' Å', '');
+  html += mRow(t('elMTh'), t('elMThS'), th == null ? t('elMNone') : th.toFixed(1) + '°', '');
+  var pk = EL.status === 'done' && th != null ? elSimPeak() : null;
+  html += mRow(t('elMSim'), t('elMSimS'), EL.status !== 'done' ? '…' : pk == null ? t('elMNone') : pk.toFixed(1) + '°', pk != null && th != null ? (pk - th >= 0 ? '+' : '') + (pk - th).toFixed(1) + '°' : '', 'big');
+  var kp = EL.status === 'done' && th != null ? QX.peakAngle(EL.kin, 8, 88) : null;
+  html += mRow(t('elMKin'), t('elMKinS'), kp == null ? '—' : kp.toFixed(1) + '°', '');
+  html += mRow(t('elMFrac'), t('elMFracS'), EL.status === 'done' && th != null ? (100 * share(EL.spec.bins, pk || th, 5)).toFixed(1) + ' %' : '—', '');
+  html += mRow(t('elMDG'), t('elMDGs'), t('elMDGv'), '');
+  html += mRow(t('elMDots'), '', EL.k.dots.length.toLocaleString(), EL.k.n || EL.k.dots.length ? 'TV ' + QSL.tvDistance(EL.k.hist, EL.spec ? EL.spec.bins : EL.k.hist).toFixed(3) : '');
+  $('#elMetrics').innerHTML = html;
+}
+X.ctl.electron = {
+  stage: 1, lead: 'leadElectron', learn: ['eL1', 'eL2'], guide: 'elGuide', legend: ['elLgSim', 'elLgHist', 'elLgFr', 'elLgHu'], foot: 'foot',
+  enter: function () { resize(); elRedrawDots(); elReset(); },
+  leave: function () { if (EL.scan) EL.scan.active = false; EL.status = 'idle'; counterClear(EL.k); },
+  fire: function () { if (EL.status === 'paused') { EL.status = 'running'; updateButtons(); return; } if (EL.status === 'done') elReset(true); EL.status = 'running'; showMsg(t('elMsgRun'), 1800); updateButtons(); },
+  pause: function () { if (EL.status === 'running') { EL.status = 'paused'; updateButtons(); } },
+  reset: function () { elReset(); },
+  part: function () {
+    var k = EL.k; if (k.on || k.waiting) { k.on = false; k.waiting = false; updateButtons(); return; }
+    if (EL.status === 'done') k.on = true; else { k.waiting = true; if (EL.status !== 'running') this.fire(); }
+    updateButtons();
+  },
+  tick: elTick,
+  buttons: function () {
+    setButtons({ fire: EL.status === 'paused' ? t('resume') : t('fire'), fireDis: EL.status === 'running', pauseDis: EL.status !== 'running',
+      part: EL.k.waiting ? t('partWait') : EL.k.on ? t('partStop') : t('elPart'), partDis: !!(EL.scan && EL.scan.active), view: true });
+  },
+  lang: function () { elSync(); elMetrics(); elScanDraw(); $('#elScanBtn').textContent = EL.scan && EL.scan.active ? t('elScanStop') : t('elScan'); },
+  hash: function () { return 'exp=electron&E=' + EL.E; },
+  fromHash: function (q) { var e = parseFloat(q.E); if (isFinite(e)) EL.E = Math.round(Math.min(120, Math.max(20, e))); },
+  resized: function () { elRedrawDots(); elScanDraw(); }
+};
+
+/* =====================================================================
+   3. X-RAY POWDER DIFFRACTION
+   ===================================================================== */
+var XR = { c: 'NaCl', tube: 'Cu', D: 60, T0: 10, T1: 110, NP: 2001, status: 'idle', refl: null, vis: null, pat: null, ms: null, scan: 0, cl: null, ring: null, k: Counter(200, 1912) };
+function xrSync() {
+  press('#xrCrystals button', function (b) { return b.dataset.c === XR.c; }); press('#xrTubes button', function (b) { return b.dataset.t === XR.tube; });
+  $('#xrR').value = XR.D; $('#xrROut').textContent = XR.D + ' Å (' + (XR.D / 10).toFixed(1) + ' nm)';
+  $('#xrCrystalNote').textContent = t('xrCrystalNotes')[XR.c];
+  $('#xrFormula').innerHTML = t('xrFormula') + '<span class="fn">' + t('xrFormulaN') + '</span>';
+  writeHash();
+}
+// theory reflections + simulated pattern + measured peaks (shared with the tests)
+function xrAnalyse(cName, tube, D) {
+  var cr = QX.CRYSTALS[cName], lam = QX.TUBES[tube].lam, refl = QX.braggReflections(cr, lam, XR.T1);
+  var cl = QX.cluster(cr, D / 2), pat = QX.debyePattern(cr, cl, lam, XR.T0, XR.T1, XR.NP), groups = QX.reflectionGroups(refl, lam, D);
+  groups.forEach(function (g) {
+    g.area = QX.patternArea(pat, XR.T0, XR.T1, g.lo, g.hi);
+    g.pos = QX.measurePeaks(pat, XR.T0, XR.T1, [g.top], Math.max(0.15, 0.6 * g.fw))[0].tth;   // local maximum next to the strongest member
+  });
+  var gTop = groups.reduce(function (a, g) { return g.rel > a.rel ? g : a; }, groups[0]);
+  groups.forEach(function (g) { g.simRel = 100 * g.area / gTop.area; g.thRel = 100 * g.rel / gTop.rel; g.edge = g.hi > XR.T1 - 0.05 || g.lo < XR.T0 + 0.05; });   // edge: window cut by the scan range
+  var as = []; groups.forEach(function (g) {
+    if (g.members.length === 1 && g.thRel >= 5) { var hk = g.top.labs[0].split('').map(Number); as.push(lam / (2 * Math.sin(g.pos * Math.PI / 360)) * Math.sqrt(hk[0] * hk[0] + hk[1] * hk[1] + hk[2] * hk[2])); }
+  });
+  var aFit = as.length ? as.reduce(function (s, v) { return s + v; }, 0) / as.length : NaN;
+  return { cr: cr, lam: lam, refl: refl, groups: groups, vis: groups.filter(function (g) { return g.thRel >= 0.5; }), cl: cl, pat: pat, aFit: aFit };
+}
+function xrReset() {
+  XR.status = 'idle'; XR.res = null; XR.scan = XR.T0; XR.ring = null; counterClear(XR.k); dot2c.clearRect(0, 0, dot2.width, dot2.height);
+  XR.refl = QX.braggReflections(QX.CRYSTALS[XR.c], QX.TUBES[XR.tube].lam, XR.T1);
+  xrSync(); updateButtons(); showMsg2(t('xrMsgFire')); xrMetrics();
+}
+function xrFire() {
+  if (XR.status === 'paused') { XR.status = 'scanning'; updateButtons(); return; }
+  if (XR.status !== 'idle') xrReset();
+  XR.status = 'computing'; updateButtons();
+  var cr = QX.CRYSTALS[XR.c], nEst = Math.round(4 / 3 * Math.PI * Math.pow(XR.D / 2, 3) / Math.pow(cr.a, 3) * cr.basis.length);
+  showMsg2(t('xrMsgCalc', { n: nEst.toLocaleString() }), 0);
+  setTimeout(function () {
+    if (XR.status !== 'computing') return;
+    XR.res = xrAnalyse(XR.c, XR.tube, XR.D); XR.scan = XR.T0; XR.status = 'scanning'; xrRing(); showMsg2(t('xrMsgScan'), 0); updateButtons();
+  }, 40);
+}
+function xrRing() {                                          // ideal ring image from the simulated radial profile
+  var c = $('#c2a'), n = 360, img = document.createElement('canvas'); img.width = n; img.height = n;
+  var ctx = img.getContext('2d'), id = ctx.createImageData(n, n), pat = XR.res.pat, mx = 0, i;
+  for (i = 0; i < pat.length; i++) if (XR.T0 + (XR.T1 - XR.T0) * i / (pat.length - 1) > 15) mx = Math.max(mx, pat[i]);
+  for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+    var r = Math.sqrt(Math.pow(x + 0.5 - n / 2, 2) + Math.pow(y + 0.5 - n / 2, 2)) / (n / 2) * XR.T1, j = 4 * (y * n + x), v = 0;
+    if (r >= XR.T0 && r <= XR.T1) v = Math.pow(pat[Math.round((r - XR.T0) / (XR.T1 - XR.T0) * (pat.length - 1))] / mx, 0.5);
+    var col = heatRGB(0.85 * v); id.data[j] = col[0]; id.data[j + 1] = col[1]; id.data[j + 2] = col[2]; id.data[j + 3] = 255;
+  }
+  ctx.putImageData(id, 0, 0); XR.ring = img;
+}
+function xrTick() {
+  if (XR.status === 'scanning') { XR.scan += (S.speed / 40) * 0.6; if (XR.scan >= XR.T1) { XR.scan = XR.T1; XR.status = 'done'; showMsg2(t('xrMsgDone'), 5000); updateButtons(); xrMetrics(); if (XR.k.waiting) { XR.k.waiting = false; XR.k.on = true; updateButtons(); } } }
+  if (XR.k.on && XR.status === 'done') xrEmit();
+  xrDraw();
+}
+function xrEmit() {
+  var k = XR.k; if (!k.cdf) k.cdf = QSL.buildCdf(XR.res.pat); if (!k.cdf) return;
+  var n = counterTake(k);
+  for (var i = 0; i < n; i++) {
+    var u = sampleW(k.cdf, k.rng), tth = XR.T0 + (XR.T1 - XR.T0) * u / (XR.NP - 1), d = { tth: tth, az: 2 * Math.PI * k.rng() };
+    k.dots.push(d); k.hist[Math.min(k.hist.length - 1, Math.floor((tth - XR.T0) / (XR.T1 - XR.T0) * k.hist.length))]++; xrDot(d);
+  }
+  if (n) xrMetrics();
+}
+function xrDot(d) {
+  var w = dot2.width, R = w / 2 * 0.96 * d.tth / XR.T1;
+  dot2c.fillStyle = '#bfe6ff'; dot2c.globalAlpha = Math.max(0.1, Math.min(0.9, 2500 / (XR.k.dots.length + 2500)));
+  dot2c.fillRect(w / 2 + R * Math.cos(d.az), w / 2 + R * Math.sin(d.az), Math.max(1, 1.2 * dpr2), Math.max(1, 1.2 * dpr2)); dot2c.globalAlpha = 1;
+}
+function xrDraw() {
+  var a = $('#c2a').getContext('2d'), w = $('#c2a').width, h = $('#c2a').height, cx = w / 2, cy = h / 2, Rm = w / 2 * 0.96;
+  a.fillStyle = '#05070c'; a.fillRect(0, 0, w, h);
+  if (XR.ring && layers.sim) {                                // simulated rings, revealed as the detector scans
+    a.save(); a.beginPath(); a.arc(cx, cy, Rm * XR.scan / XR.T1, 0, 7); a.clip(); a.globalAlpha = XR.k.dots.length ? 0.35 : 1; a.drawImage(XR.ring, cx - Rm, cy - Rm, 2 * Rm, 2 * Rm); a.restore(); a.globalAlpha = 1;
+  }
+  if (layers.hist) a.drawImage(dot2, 0, 0);
+  a.strokeStyle = 'rgba(255,255,255,.14)'; a.lineWidth = dpr2; fnt(a, 10); a.fillStyle = 'rgba(139,151,173,.9)'; a.textAlign = 'left'; a.textBaseline = 'bottom';
+  [30, 60, 90].forEach(function (g) { var r = Rm * g / XR.T1; a.setLineDash([3 * dpr2, 4 * dpr2]); a.beginPath(); a.arc(cx, cy, r, 0, 7); a.stroke(); a.setLineDash([]); a.fillText('2θ = ' + g + '°', cx + r * 0.707 + 3 * dpr2, cy - r * 0.707); });
+  if (layers.fr && XR.refl) XR.refl.forEach(function (r) {                // theory rings: short arcs in the lower-left quadrant, labelled
+    if (r.rel < 0.5) return; var rr = Rm * r.tth / XR.T1; a.strokeStyle = 'rgba(255,180,84,.85)'; a.lineWidth = 1.4 * dpr2; a.beginPath(); a.arc(cx, cy, rr, 0.6 * Math.PI, 0.9 * Math.PI); a.stroke();
+  });
+  a.fillStyle = '#000'; a.beginPath(); a.arc(cx, cy, Rm * XR.T0 / XR.T1, 0, 7); a.fill();     // beam stop
+  fnt(a, 11.5, 700); a.fillStyle = 'rgba(231,236,245,.9)'; a.textAlign = 'left'; a.textBaseline = 'top'; a.fillText(t('xrViewTitle'), 10 * dpr2, 10 * dpr2);
+  fnt(a, 10.5); a.fillStyle = 'rgba(139,151,173,.95)'; a.fillText(XR.c + ' · ' + QX.TUBES[XR.tube].name, 10 * dpr2, 28 * dpr2);
+  // ---- plot
+  var c = $('#c2b').getContext('2d'), W2 = $('#c2b').width, H2 = $('#c2b').height, b = { x: 18 * dpr2, y: 30 * dpr2, w: W2 - 34 * dpr2, h: H2 - 70 * dpr2 }, xr = [XR.T0, XR.T1];
+  c.clearRect(0, 0, W2, H2); axes(c, b, xr, [10, 30, 50, 70, 90, 110], t('xrPlotX'), XR.c + ' · ' + QX.TUBES[XR.tube].name + ' · λ = ' + QX.TUBES[XR.tube].lam + ' Å');
+  var res = XR.res, mx = 0, i;
+  if (res) for (i = 0; i < res.pat.length; i++) if (XR.T0 + (XR.T1 - XR.T0) * i / (res.pat.length - 1) > 15) mx = Math.max(mx, res.pat[i]);
+  if (layers.hist && XR.k.n && res) {
+    var hm = 0, nb = XR.k.hist.length; for (i = 0; i < nb; i++) hm = Math.max(hm, XR.k.hist[i]);
+    var pm = 0; for (i = 0; i < nb; i++) { var s = 0, cnt = 0; for (var j = Math.floor(i * (XR.NP - 1) / nb); j < Math.floor((i + 1) * (XR.NP - 1) / nb); j++) { s += res.pat[j]; cnt++; } pm = Math.max(pm, s); }
+    var tot = 0; for (i = 0; i < nb; i++) tot += XR.k.hist[i]; var psum = 0; for (i = 0; i < res.pat.length; i++) psum += res.pat[i];
+    c.fillStyle = 'rgba(191,230,255,.32)';
+    for (i = 0; i < nb; i++) if (XR.k.hist[i]) { var hv = XR.k.hist[i] / tot * psum / ((XR.NP - 1) / nb) / mx; c.fillRect(b.x + i / nb * b.w, b.y + b.h - Math.min(1, hv) * b.h * 0.95, b.w / nb - dpr2 * 0.5, Math.min(1, hv) * b.h * 0.95); }
+  }
+  if (layers.fr && XR.refl) {
+    fnt(c, 9.5, 500, true); c.textAlign = 'center'; c.textBaseline = 'bottom';
+    XR.refl.forEach(function (r) {
+      var X0 = px(b, xr, r.tth);
+      if (r.rel < 0.5) { if (r.rel < 0.05) { c.fillStyle = 'rgba(93,104,125,.9)'; c.fillText('×', X0, b.y + b.h - 2 * dpr2); } return; }
+      var hh = r.rel / 100 * b.h * 0.95; c.fillStyle = 'rgba(255,180,84,.85)'; c.fillRect(X0 - dpr2, b.y + b.h - hh, 2 * dpr2, hh);
+      if (r.rel >= 4) { c.fillStyle = 'rgba(255,180,84,.95)'; c.fillText(r.hkl, X0, b.y + b.h - hh - 3 * dpr2); }
+    });
+  }
+  if (layers.sim && res && mx > 0) {
+    var nShow = Math.round((XR.scan - XR.T0) / (XR.T1 - XR.T0) * (res.pat.length - 1));
+    c.save(); c.beginPath(); c.rect(b.x, b.y - 4 * dpr2, b.w, b.h + 4 * dpr2); c.clip();
+    c.strokeStyle = '#f2f5fa'; c.lineWidth = 1.3 * dpr2; c.beginPath();
+    for (i = 0; i <= nShow; i++) { var X1 = b.x + i / (res.pat.length - 1) * b.w, Y1 = b.y + b.h - res.pat[i] / mx * b.h * 0.95; if (i) c.lineTo(X1, Y1); else c.moveTo(X1, Y1); }
+    c.stroke(); c.restore();
+    if (XR.status === 'scanning') { var Xs = px(b, xr, XR.scan); c.strokeStyle = 'rgba(127,215,255,.7)'; c.beginPath(); c.moveTo(Xs, b.y); c.lineTo(Xs, b.y + b.h); c.stroke(); }
+  }
+  if (run.frame++ % 6 === 0) setStatus([['2θ', XR.scan.toFixed(1) + '°'], [t('xrMN'), res ? res.cl.N.toLocaleString() : '—'], ['λ', QX.TUBES[XR.tube].lam + ' Å'], [t('xrMDots'), XR.k.dots.length.toLocaleString()]]);
+}
+function xrMetrics() {
+  var res = XR.res, cr = QX.CRYSTALS[XR.c], html = '', done = XR.status === 'done';
+  html += mRow(t('xrMA'), t('xrMAs'), done ? res.aFit.toFixed(4) + ' Å' : '…', done ? pctErr(res.aFit, cr.a) + ' (a = ' + cr.a + ' Å)' : '', 'big');
+  html += mRow(t('xrMN'), '', res ? res.cl.N.toLocaleString() : '—', '');
+  var th = t('xrTh'), rows = done ? res.vis.slice(0, 9) : (XR.refl || []).filter(function (r) { return r.rel >= 0.5; }).slice(0, 9).map(function (r) { return { label: r.hkl, top: r, thRel: r.rel }; });
+  html += '<div class="metric" style="display:block"><div class="k">' + t('xrMTable') + '</div><table class="tbl"><tr>' + th.map(function (s) { return '<th>' + s + '</th>'; }).join('') + '</tr>' +
+    rows.map(function (g) { return '<tr><td>' + g.label + '</td><td>' + g.top.d.toFixed(3) + '</td><td>' + g.top.tth.toFixed(2) + '</td><td>' + (done ? g.pos.toFixed(2) : '…') + '</td><td>' + g.thRel.toFixed(0) + '</td><td>' + (done ? (g.edge ? '—' : g.simRel.toFixed(0)) : '…') + '</td></tr>'; }).join('') + '</table></div>';
+  var abs = (XR.refl || []).filter(function (r) { return r.rel < 0.05; }).slice(0, 6).map(function (r) { return r.hkl; });
+  html += mRow(t('xrMAbs'), '', abs.length ? abs.join(' ') : '—', '');
+  html += mRow(t('xrMDots'), t('xrMTV'), XR.k.dots.length.toLocaleString(), XR.k.n || XR.k.dots.length ? 'TV ' + xrTV().toFixed(3) : '');
+  $('#xrMetrics').innerHTML = html;
+}
+function xrTV() { var nb = XR.k.hist.length, ref = new Float64Array(nb); for (var j = 0; j < XR.NP; j++) ref[Math.min(nb - 1, Math.floor(j / (XR.NP - 1) * nb))] += XR.res.pat[j]; return QSL.tvDistance(XR.k.hist, ref); }
+X.ctl.xray = {
+  stage: 2, lead: 'leadXray', learn: ['xL1', 'xL2'], guide: 'xrGuide', legend: ['xrLgSim', 'xrLgHist', 'xrLgFr', null], foot: 'footX',
+  enter: function () { resize2(); xrReset(); },
+  leave: function () { XR.status = 'idle'; counterClear(XR.k); },
+  fire: xrFire,
+  pause: function () { if (XR.status === 'scanning') { XR.status = 'paused'; updateButtons(); } },
+  reset: xrReset,
+  part: function () { var k = XR.k; if (k.on || k.waiting) { k.on = false; k.waiting = false; updateButtons(); return; } if (XR.status === 'done') k.on = true; else { k.waiting = true; if (XR.status === 'idle') xrFire(); } updateButtons(); },
+  tick: xrTick,
+  buttons: function () { setButtons({ fire: XR.status === 'paused' ? t('resume') : t('compute'), fireDis: XR.status === 'scanning' || XR.status === 'computing', pauseDis: XR.status !== 'scanning', part: XR.k.waiting ? t('partWait') : XR.k.on ? t('partStop') : t('phPart') }); },
+  lang: function () { xrSync(); xrMetrics(); },
+  hash: function () { return 'exp=xray&c=' + XR.c + '&t=' + XR.tube + '&D=' + XR.D; },
+  fromHash: function (q) { if (QX.CRYSTALS[q.c]) XR.c = q.c; if (QX.TUBES[q.t]) XR.tube = q.t; var d = parseFloat(q.D); if (isFinite(d)) XR.D = Math.round(Math.min(80, Math.max(30, d))); },
+  redrawDots: function () { XR.k.dots.forEach(xrDot); }
+};
+
+/* =====================================================================
+   4. DNA FIBRE DIFFRACTION
+   ===================================================================== */
+var DN = { preset: 'B', p: Object.assign({}, QX.DNA_PRESETS.B), turns: 5, nR: 120, nZ: 181, Rmax: 0.2, status: 'idle', res: null, img: null, k: Counter(1, 1952) };
+function dnZmax(p) { return Math.max(0.32, (p.bp + 0.8) / p.pitch); }
+function dnSync() {
+  var p = DN.p; press('#dnPresets button', function (b) { return b.dataset.p === DN.preset; });
+  $('#dnP').value = p.pitch; $('#dnPOut').textContent = p.pitch.toFixed(1) + ' Å';
+  $('#dnBp').value = p.bp; $('#dnBpOut').textContent = p.bp + ' · ' + (p.pitch / p.bp).toFixed(2) + ' Å';
+  $('#dnR').value = p.r; $('#dnROut').textContent = p.r.toFixed(1) + ' Å';
+  $('#dnOff').value = p.off; $('#dnOffOut').textContent = p.off.toFixed(3) + ' P'; $('#dnOff').disabled = !p.two;
+  $('#dnTwo').checked = p.two;
+  $('#dnFormula').innerHTML = t('dnFormula') + '<span class="fn">' + t('dnFormulaN') + '</span>';
+  writeHash();
+}
+// simulated pattern + every number derived from it, and the theory (shared with the tests)
+function dnAnalyse(p, turns, nR, nZ, Rmax) {
+  var Zmax = dnZmax(p), model = QX.dnaModel(p, turns), pat = QX.fibrePattern(model, nR, nZ, Rmax, Zmax, 32), dz = Zmax / (nZ - 1), u = p.bp;
+  var llS = QX.layerLinesSim(pat, nR, nZ, Rmax, Zmax, p.pitch, u, 0.008, Rmax), llT = QX.layerLinesTheory(p, u, 0.008, Rmax);
+  var rows = QX.rowSums(pat, nR, nZ, nR), zs = [];
+  for (var l = 1; l <= 3; l++) zs.push(QX.localPeak(rows, Math.round(l / p.pitch / dz), Math.max(2, Math.round(0.3 / p.pitch / dz))) * dz);
+  var P = (1 * 1 + 2 * 2 + 3 * 3) / (zs[0] * 1 + zs[1] * 2 + zs[2] * 3);
+  var mer = QX.rowSums(pat, nR, nZ, Math.max(3, Math.round(0.012 / Rmax * nR))), zm = QX.localPeak(mer, Math.round(u / p.pitch / dz), Math.max(2, Math.round(0.3 / p.pitch / dz))) * dz;
+  // profiles along layer lines 1..3 (sim: row at Z = l/P ± half; theory: J² sums)
+  var prof = [], profT = [];
+  for (l = 1; l <= 3; l++) {
+    var c = Math.round(l / p.pitch / dz), half = Math.max(1, Math.round(0.35 / p.pitch / dz)), a = new Float64Array(nR), b = new Float64Array(nR);
+    for (var iz = Math.max(0, c - half); iz <= Math.min(nZ - 1, c + half); iz++) for (var ir = 0; ir < nR; ir++) a[ir] += pat[iz * nR + ir];
+    for (ir = 0; ir < nR; ir++) b[ir] = QX.helixTheory(p, l, Rmax * (ir + 0.5) / nR);
+    prof.push(a); profT.push(b);
+  }
+  function firstMax(a) { for (var i = 2; i < a.length - 1; i++) if (a[i] >= a[i - 1] && a[i] > a[i + 1] && a[i] > 0.2 * Math.max.apply(null, a)) return QX.localPeak(a, i, 1); return NaN; }
+  var R1s = (firstMax(prof[0]) + 0.5) / nR * Rmax, R1t = (firstMax(profT[0]) + 0.5) / nR * Rmax;
+  var r = QSL.pearson(llS.slice(1), llT.slice(1), 0, u);
+  return { model: model, pat: pat, Zmax: Zmax, llS: llS, llT: llT, P: P, rise: 1 / zm, I43s: llS[4] / llS[3], I43t: llT[4] / llT[3], rEffS: 1.8412 / (2 * Math.PI * R1s), rEffT: 1.8412 / (2 * Math.PI * R1t), r: r, prof: prof, profT: profT };
+}
+function dnReset() {
+  DN.status = 'idle'; DN.res = null; DN.img = null; counterClear(DN.k); dot2c.clearRect(0, 0, dot2.width, dot2.height);
+  dnSync(); updateButtons(); showMsg2(t('dnMsgFire')); dnMetrics();
+}
+function dnFire() {
+  if (DN.status !== 'idle') dnReset();
+  DN.status = 'computing'; updateButtons();
+  showMsg2(t('dnMsgCalc', { n: QX.dnaModel(DN.p, DN.turns).atoms.length }), 0);
+  setTimeout(function () {
+    if (DN.status !== 'computing') return;
+    DN.res = dnAnalyse(DN.p, DN.turns, DN.nR, DN.nZ, DN.Rmax); dnImage(); DN.status = 'done';
+    showMsg2(t('dnMsgDone'), 5000); updateButtons(); dnMetrics();
+    if (DN.k.waiting) { DN.k.waiting = false; DN.k.on = true; updateButtons(); }
+  }, 40);
+}
+function dnRef() {                                           // brightness reference: brightest cell on layer lines 1 … u−1 (equator and meridian excluded)
+  var pat = DN.res.pat, dz = DN.res.Zmax / (DN.nZ - 1), m = 0, z0 = Math.round(0.5 / DN.p.pitch / dz), z1 = Math.round((DN.p.bp - 0.5) / DN.p.pitch / dz);
+  for (var iz = z0; iz <= Math.min(DN.nZ - 1, z1); iz++) for (var ir = 3; ir < DN.nR; ir++) m = Math.max(m, pat[iz * DN.nR + ir]);
+  return m || 1;
+}
+function dnImage() {
+  var n = 400, img = document.createElement('canvas'); img.width = n; img.height = n;
+  var ctx = img.getContext('2d'), id = ctx.createImageData(n, n), pat = DN.res.pat, ref = dnRef();
+  for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) {
+    var R = Math.abs(x + 0.5 - n / 2) / (n / 2) * DN.Rmax, Z = Math.abs(y + 0.5 - n / 2) / (n / 2) * DN.res.Zmax;
+    var fr = R / DN.Rmax * DN.nR - 0.5, fz = Z / DN.res.Zmax * (DN.nZ - 1), ir = Math.max(0, Math.min(DN.nR - 2, Math.floor(fr))), iz = Math.min(DN.nZ - 2, Math.floor(fz)), tr = Math.max(0, Math.min(1, fr - ir)), tz = fz - iz;
+    var v = (pat[iz * DN.nR + ir] * (1 - tr) + pat[iz * DN.nR + ir + 1] * tr) * (1 - tz) + (pat[(iz + 1) * DN.nR + ir] * (1 - tr) + pat[(iz + 1) * DN.nR + ir + 1] * tr) * tz;
+    var col = heatRGB(Math.pow(Math.min(1, v / ref), 0.6)), j = 4 * (y * n + x);
+    id.data[j] = col[0]; id.data[j + 1] = col[1]; id.data[j + 2] = col[2]; id.data[j + 3] = 255;
+  }
+  ctx.putImageData(id, 0, 0); DN.img = img;
+  var w = new Float64Array(DN.nR * DN.nZ); for (var i = 0; i < w.length; i++) w[i] = Math.min(pat[i], 1.5 * ref) * ((i % DN.nR) < 4 && i / DN.nR < 4 ? 0 : 1);
+  DN.k.cdf = QSL.buildCdf(w);
+}
+function dnEmit() {
+  var k = DN.k; if (!k.cdf) return; var n = counterTake(k);
+  for (var i = 0; i < n; i++) {
+    var cell = Math.min(DN.nR * DN.nZ - 1, Math.floor(sampleW(k.cdf, k.rng))), ir = cell % DN.nR, iz = (cell / DN.nR) | 0;
+    var d = { R: (ir + k.rng()) / DN.nR * (k.rng() < 0.5 ? -1 : 1), Z: (iz + k.rng() - 0.5) / (DN.nZ - 1) * (k.rng() < 0.5 ? -1 : 1) };
+    k.dots.push(d); k.n++; dnDot(d);
+  }
+  if (n && k.dots.length % 5 < n + 1) dnMetrics();
+}
+function dnBox() { var w = dot2.width, m = 30 * dpr2; return { x: m, y: m, s: w - 2 * m }; }
+function dnDot(d) {
+  var b = dnBox(); dot2c.fillStyle = '#ffe2a8'; dot2c.globalAlpha = Math.max(0.12, Math.min(0.9, 3000 / (DN.k.dots.length + 3000)));
+  dot2c.fillRect(b.x + b.s / 2 + d.R * b.s / 2, b.y + b.s / 2 - d.Z * b.s / 2, Math.max(1, 1.2 * dpr2), Math.max(1, 1.2 * dpr2)); dot2c.globalAlpha = 1;
+}
+function dnTick() { if (DN.k.on && DN.status === 'done') dnEmit(); dnDraw(); }
+function dnDraw() {
+  var a = $('#c2a').getContext('2d'), w = $('#c2a').width, h = $('#c2a').height, b = dnBox();
+  a.fillStyle = '#05070c'; a.fillRect(0, 0, w, h);
+  if (DN.img && layers.sim) { a.globalAlpha = DN.k.dots.length ? 0.3 : 1; a.imageSmoothingEnabled = true; a.drawImage(DN.img, b.x, b.y, b.s, b.s); a.globalAlpha = 1; }
+  if (layers.hist) a.drawImage(dot2, 0, 0);
+  a.strokeStyle = 'rgba(255,255,255,.14)'; a.lineWidth = dpr2; a.strokeRect(b.x + 0.5, b.y + 0.5, b.s, b.s);
+  a.fillStyle = '#000'; a.beginPath(); a.arc(b.x + b.s / 2, b.y + b.s / 2, b.s * 0.018, 0, 7); a.fill();
+  var Zmax = dnZmax(DN.p); fnt(a, 9.5, 500, true); a.textBaseline = 'middle';
+  for (var l = 1; l <= DN.p.bp && l / DN.p.pitch <= Zmax; l++) {
+    var y = b.y + b.s / 2 - (l / DN.p.pitch) / Zmax * b.s / 2, miss = l === 4 && DN.res && DN.res.I43s < 0.5;
+    a.fillStyle = miss ? 'rgba(255,180,84,1)' : 'rgba(255,180,84,.7)'; a.textAlign = 'left'; a.fillText((l === 1 ? 'l=' : '') + l, b.x + b.s + 4 * dpr2, y);
+    a.fillRect(b.x + b.s - 6 * dpr2, y, 6 * dpr2, dpr2);
+    if (miss) { a.textAlign = 'right'; fnt(a, 10.5); a.fillText(t('dnMissing') + ' →', b.x + b.s - 10 * dpr2, y); fnt(a, 9.5, 500, true); }
+  }
+  fnt(a, 11.5, 700); a.fillStyle = 'rgba(231,236,245,.9)'; a.textAlign = 'left'; a.textBaseline = 'bottom'; a.fillText(t('dnViewTitle'), b.x, b.y - 8 * dpr2);
+  fnt(a, 10); a.fillStyle = 'rgba(139,151,173,.95)'; a.textAlign = 'right'; a.fillText(t('dnAxisZ') + ' ↑   ' + t('dnAxisR') + ' →', b.x + b.s, b.y - 8 * dpr2);
+  a.textBaseline = 'top'; a.textAlign = 'center'; a.fillText('P = ' + DN.p.pitch.toFixed(1) + ' Å · r = ' + DN.p.r.toFixed(1) + ' Å · ' + DN.p.bp + ' bp', b.x + b.s / 2, b.y + b.s + 8 * dpr2);
+  // ---- plot: bars (top) + layer-line profiles (bottom)
+  var c = $('#c2b').getContext('2d'), W2 = $('#c2b').width, H2 = $('#c2b').height; c.clearRect(0, 0, W2, H2);
+  var u = DN.p.bp, b1 = { x: 18 * dpr2, y: 30 * dpr2, w: W2 - 34 * dpr2, h: H2 * 0.42 }, ticks = []; for (l = 1; l <= u; l++) ticks.push(l);
+  axes(c, b1, [0.5, u + 0.5], ticks, '', t('dnPlotBars'));
+  var res = DN.res;
+  if (res) {
+    var ms = Math.max.apply(null, res.llS.slice(1, u)), mt = Math.max.apply(null, res.llT.slice(1, u)), bw = b1.w / u;
+    for (l = 1; l <= u; l++) {
+      var X0 = b1.x + (l - 0.5) * bw, hs = Math.min(1.08, res.llS[l] / ms) * b1.h * 0.9, ht = Math.min(1.08, res.llT[l] / mt) * b1.h * 0.9;
+      if (layers.sim) { c.fillStyle = l === 4 ? 'rgba(255,180,84,.85)' : 'rgba(242,245,250,.85)'; c.fillRect(X0 - bw * 0.3, b1.y + b1.h - hs, bw * 0.3, hs); }
+      if (layers.hu) { c.strokeStyle = '#6fe0c0'; c.lineWidth = 1.4 * dpr2; c.strokeRect(X0 + 0.5, b1.y + b1.h - ht, bw * 0.3, ht); }
+    }
+  }
+  var b2 = { x: 18 * dpr2, y: b1.y + b1.h + 58 * dpr2, w: W2 - 34 * dpr2, h: H2 - (b1.y + b1.h + 58 * dpr2) - 34 * dpr2 }, xr = [0, DN.Rmax];
+  axes(c, b2, xr, [0, 0.05, 0.1, 0.15, 0.2], 'R (Å⁻¹)', t('dnPlotProf'), function (v) { return v.toFixed(2); });
+  if (res) {
+    var cols = ['#f2f5fa', '#ffd27f', '#b9a8ff'], sm = 0, st = 0, i, l2;
+    for (l2 = 0; l2 < 3; l2++) for (i = 0; i < DN.nR; i++) { sm = Math.max(sm, res.prof[l2][i]); st = Math.max(st, res.profT[l2][i]); }
+    for (l2 = 0; l2 < 3; l2++) [[res.prof[l2], sm, false, layers.sim], [res.profT[l2], st, true, layers.hu]].forEach(function (L) {
+      if (!L[3]) return; c.strokeStyle = L[2] ? 'rgba(111,224,192,.9)' : cols[l2]; c.lineWidth = (L[2] ? 1.2 : 1.6) * dpr2; c.setLineDash(L[2] ? [4 * dpr2, 3 * dpr2] : []); c.beginPath();
+      for (i = 0; i < DN.nR; i++) { var X1 = b2.x + (i + 0.5) / DN.nR * b2.w, Y1 = b2.y + b2.h - L[0][i] / L[1] * b2.h * 0.92; if (i) c.lineTo(X1, Y1); else c.moveTo(X1, Y1); }
+      c.stroke(); c.setLineDash([]);
+    });
+    fnt(c, 10); c.textAlign = 'right'; c.textBaseline = 'top';
+    for (l2 = 0; l2 < 3; l2++) { c.fillStyle = cols[l2]; c.fillText('l = ' + (l2 + 1), b2.x + b2.w - 4 * dpr2, b2.y + 4 * dpr2 + l2 * 14 * dpr2); }
+  }
+  if (run.frame++ % 6 === 0) setStatus([['P', DN.p.pitch.toFixed(1) + ' Å'], ['bp', DN.p.bp], ['r', DN.p.r.toFixed(1) + ' Å'], [t('dnMDots'), DN.k.dots.length.toLocaleString()]]);
+}
+function dnMetrics() {
+  var r = DN.res, p = DN.p, html = '';
+  html += mRow(t('dnMP'), t('dnMPs'), r ? r.P.toFixed(2) + ' Å' : '…', r ? pctErr(r.P, p.pitch) + ' (P = ' + p.pitch.toFixed(1) + ' Å)' : '', 'big');
+  html += mRow(t('dnMRise'), t('dnMRises'), r ? r.rise.toFixed(3) + ' Å' : '…', r ? pctErr(r.rise, p.pitch / p.bp) + ' (P/u = ' + (p.pitch / p.bp).toFixed(3) + ' Å)' : '');
+  html += mRow(t('dnMI43'), t('dnMI43s'), r ? r.I43s.toFixed(3) : '…', r ? (I18N[S.lang] === I18N.ko ? '이론 ' : 'theory ') + r.I43t.toFixed(3) : '');
+  html += mRow(t('dnMR'), t('dnMRs'), r && isFinite(r.rEffS) ? r.rEffS.toFixed(2) + ' Å' : '…', r && isFinite(r.rEffT) ? (I18N[S.lang] === I18N.ko ? '이론 ' : 'theory ') + r.rEffT.toFixed(2) + ' Å' : '');
+  html += mRow(t('dnMCorr'), t('dnMCorrs'), r ? r.r.toFixed(3) : '…', '');
+  html += mRow(t('dnMDots'), '', DN.k.dots.length.toLocaleString(), '');
+  $('#dnMetrics').innerHTML = html;
+}
+X.ctl.dna = {
+  stage: 2, lead: 'leadDna', learn: ['dL1', 'dL2'], guide: 'dnGuide', legend: ['dnLgSim', 'dnLgHist', null, 'dnLgHu'], foot: 'footD',
+  enter: function () { resize2(); dnReset(); },
+  leave: function () { DN.status = 'idle'; counterClear(DN.k); },
+  fire: dnFire, pause: function () { }, reset: dnReset,
+  part: function () { var k = DN.k; if (k.on || k.waiting) { k.on = false; k.waiting = false; updateButtons(); return; } if (DN.status === 'done') k.on = true; else { k.waiting = true; if (DN.status === 'idle') dnFire(); } updateButtons(); },
+  tick: dnTick,
+  buttons: function () { setButtons({ fire: t('compute'), fireDis: DN.status === 'computing', pauseDis: true, part: DN.k.waiting ? t('partWait') : DN.k.on ? t('partStop') : t('phPart') }); },
+  lang: function () { dnSync(); dnMetrics(); },
+  hash: function () { var p = DN.p; return 'exp=dna&p=' + DN.preset + '&P=' + p.pitch + '&bp=' + p.bp + '&r=' + p.r + '&off=' + p.off + '&two=' + (p.two ? 1 : 0); },
+  fromHash: function (q) {
+    if (QX.DNA_PRESETS[q.p]) { DN.preset = q.p; DN.p = Object.assign({}, QX.DNA_PRESETS[q.p]); } else DN.preset = '';
+    function nm(k, lo, hi, name) { var v = parseFloat(q[k]); if (isFinite(v)) DN.p[name] = Math.min(hi, Math.max(lo, v)); }
+    nm('P', 26, 40, 'pitch'); nm('bp', 9, 12, 'bp'); nm('r', 6, 12, 'r'); nm('off', 0.25, 0.5, 'off'); DN.p.bp = Math.round(DN.p.bp); if (q.two != null) DN.p.two = q.two === '1';
+    if (DN.preset && JSON.stringify(DN.p) !== JSON.stringify(QX.DNA_PRESETS[DN.preset])) DN.preset = '';
+  },
+  resized: function () { }, redrawDots: function () { DN.k.dots.forEach(dnDot); }
+};
+
+/* =====================================================================
+   5. COMPTON EFFECT
+   ===================================================================== */
+var CP = { src: 'Mo', tg: 'C', th: 90, res: 1.0, N: 5000, status: 'idle', nb: 220, hist: null, coh: 0, cnt: 0, points: [], vis: [], ang: new Float64Array(36), angN: 0, rng: QSL.mulberry32(1923) };
+function cpE() { return QX.SOURCES[CP.src].E; }
+function cpRange() { var l0 = QX.HC / cpE(); return [Math.max(0.5 * l0, l0 - 0.012), l0 + 2 * QX.LAMBDA_C + 0.02]; }
+function cpSync() {
+  press('#cpSources button', function (b) { return b.dataset.s === CP.src; }); press('#cpTargets button', function (b) { return b.dataset.t === CP.tg; });
+  $('#cpTh').value = CP.th; $('#cpThOut').textContent = CP.th + '°'; $('#cpRes').value = CP.res; $('#cpResOut').textContent = CP.res.toFixed(1) + ' mÅ';
+  $('#cpN').value = CP.N; $('#cpNOut').textContent = CP.N.toLocaleString();
+  $('#cpFormula').innerHTML = t('cpFormula') + '<span class="fn">' + t('cpFormulaN') + '</span>';
+  writeHash();
+}
+function cpClearRun() { CP.hist = new Float64Array(CP.nb); CP.cnt = 0; CP.coh = 0; CP.meas = null; }
+function cpReset(keepPoints) {
+  CP.status = 'idle'; cpClearRun(); CP.vis = []; CP.ang.fill(0); CP.angN = 0; if (!keepPoints) CP.points = [];
+  cpSync(); updateButtons(); showMsg2(t('cpMsgFire')); cpMetrics();
+}
+// measured peak of the shifted line, found without the formula: maximum of the smoothed spectrum beyond the
+// unshifted line (λ0 + 3σ_inst + 2 mÅ), then the centroid of the contiguous bins above half that maximum
+function cpMeasure(hist, rg, lam0, sInst) {
+  var nb = hist.length, dl = (rg[1] - rg[0]) / nb, sm = new Float64Array(nb), i, cut = lam0 + 3 * sInst + 0.002;
+  for (i = 1; i < nb - 1; i++) sm[i] = (hist[i - 1] + hist[i] + hist[i + 1]) / 3;
+  var b = -1; for (i = 1; i < nb - 1; i++) { var lam = rg[0] + (i + 0.5) * dl; if (lam > cut && (b < 0 || sm[i] > sm[b])) b = i; }
+  if (b < 0 || sm[b] < 5) return null;
+  var lo = b, hi = b; while (lo > 1 && sm[lo - 1] > sm[b] / 2 && rg[0] + (lo - 0.5) * dl > cut) lo--; while (hi < nb - 2 && sm[hi + 1] > sm[b] / 2) hi++;
+  if (rg[0] + (lo + 0.5) * dl <= cut + dl) return null;          // the line runs into the unshifted one: not resolved
+  var s = 0, sw = 0; for (i = lo; i <= hi; i++) { s += hist[i] * (rg[0] + (i + 0.5) * dl); sw += hist[i]; }
+  return sw > 0 ? s / sw - lam0 : null;
+}
+function cpFire() {
+  if (CP.status === 'paused') { CP.status = 'running'; updateButtons(); return; }
+  cpClearRun(); CP.status = 'running'; updateButtons(); showMsg2(t('cpMsgRun', { n: 0, N: CP.N.toLocaleString() }), 0);
+}
+function cpTick() {
+  var E = cpE(), lam0 = QX.HC / E, tg = QX.TARGETS[CP.tg], rg = cpRange();
+  if (CP.status === 'running') {
+    CP.carry = (CP.carry || 0) + CP.N / 240 * (S.speed / 40); var n = Math.min(CP.N - CP.cnt, Math.floor(CP.carry)), sI = CP.res / 1000; CP.carry -= n;
+    for (var i = 0; i < n; i++) {
+      var e = QX.comptonEvent(tg, E, CP.th * QX.D2R, 1.5 * QX.D2R, CP.rng), lam = e.lam + QX.gauss(CP.rng) * sI, b = Math.floor((lam - rg[0]) / (rg[1] - rg[0]) * CP.nb);
+      if (b >= 0 && b < CP.nb) CP.hist[b]++; CP.cnt++; if (e.coh) CP.coh++;
+    }
+    if (CP.cnt % 30 < n + 1) showMsg2(t('cpMsgRun', { n: CP.cnt.toLocaleString(), N: CP.N.toLocaleString() }), 0);
+    if (CP.cnt >= CP.N) {
+      CP.status = 'done'; CP.meas = cpMeasure(CP.hist, rg, lam0, sI);
+      if (CP.meas != null) { CP.points = CP.points.filter(function (p) { return !(p.th === CP.th && p.src === CP.src); }); CP.points.push({ th: CP.th, x: 1 - Math.cos(CP.th * QX.D2R), y: CP.meas, src: CP.src }); }
+      showMsg2(t('cpMsgDone'), 5000); updateButtons(); cpMetrics();
+    } else if (CP.cnt % 200 < n + 1) cpMetrics();
+  }
+  // visual photons (all directions, sampled from the total cross section)
+  var spawn = CP.status === 'running' ? 2 : 0;
+  for (var s = 0; s < spawn; s++) {
+    var th, cs, mx = QX.crossSections(tg, E, 0); mx = 1.05 * (mx.coh + mx.inc);
+    for (var tr = 0; tr < 200; tr++) { th = Math.acos(2 * CP.rng() - 1); cs = QX.crossSections(tg, E, th); if (CP.rng() * mx < cs.coh + cs.inc) break; }
+    var coh = CP.rng() * (cs.coh + cs.inc) < cs.coh, sg = CP.rng() < 0.5 ? 1 : -1;
+    CP.vis.push({ t: 0, th: th * sg, shift: coh ? 0 : QX.comptonShift(th) / (2 * QX.LAMBDA_C) });
+    CP.ang[Math.min(35, Math.floor(th / Math.PI * 36))]++; CP.angN++;
+  }
+  cpDraw();
+}
+function cpDraw() {
+  var a = $('#c2a').getContext('2d'), w = $('#c2a').width, h = $('#c2a').height, cx = w * 0.52, cy = h * 0.55, R = Math.min(w, h) * 0.4, E = cpE();
+  a.fillStyle = '#05070c'; a.fillRect(0, 0, w, h);
+  // angular distribution: theory (teal) + histogram of visual photons (white), drawn as polar curves
+  var tg = QX.TARGETS[CP.tg], thMax = 0, b, k;
+  var thv = []; for (k = 0; k <= 180; k++) { var cs = QX.crossSections(tg, E, k * QX.D2R); thv.push(cs.coh + cs.inc); thMax = Math.max(thMax, cs.coh + cs.inc); }
+  function petal(vals, max, col, dash) { a.strokeStyle = col; a.lineWidth = 1.3 * dpr2; a.setLineDash(dash ? [4 * dpr2, 3 * dpr2] : []); [1, -1].forEach(function (sg) { a.beginPath(); vals.forEach(function (v, i) { var an = i / (vals.length - 1) * Math.PI, r = v / max * R * 0.9; var X0 = cx + r * Math.cos(an), Y0 = cy - sg * r * Math.sin(an); if (i) a.lineTo(X0, Y0); else a.moveTo(X0, Y0); }); a.stroke(); }); a.setLineDash([]); }
+  if (layers.hu) petal(thv, thMax, 'rgba(111,224,192,.75)', true);
+  if (layers.sim && CP.angN > 50) { var hv = [], hm = 0; for (b = 0; b < 36; b++) { var sa = Math.cos(b / 36 * Math.PI) - Math.cos((b + 1) / 36 * Math.PI); hv.push(CP.ang[b] / sa); } hm = Math.max.apply(null, hv); petal(hv, hm, 'rgba(242,245,250,.8)', false); }
+  // beam, target, detector arm
+  a.strokeStyle = 'rgba(127,215,255,.5)'; a.lineWidth = 3 * dpr2; a.beginPath(); a.moveTo(12 * dpr2, cy); a.lineTo(cx, cy); a.stroke();
+  a.fillStyle = '#cfd7e6'; a.fillRect(cx - 4 * dpr2, cy - 14 * dpr2, 8 * dpr2, 28 * dpr2);
+  var thr = CP.th * QX.D2R, dx = cx + R * 1.08 * Math.cos(thr), dy = cy - R * 1.08 * Math.sin(thr);
+  a.strokeStyle = 'rgba(255,180,84,.5)'; a.lineWidth = dpr2; a.setLineDash([4 * dpr2, 4 * dpr2]); a.beginPath(); a.moveTo(cx, cy); a.lineTo(dx, dy); a.stroke(); a.setLineDash([]);
+  a.save(); a.translate(dx, dy); a.rotate(-thr); a.fillStyle = '#ffb454'; a.fillRect(-2 * dpr2, -12 * dpr2, 16 * dpr2, 24 * dpr2); a.restore();
+  a.strokeStyle = 'rgba(255,180,84,.8)'; a.beginPath(); a.arc(cx, cy, 30 * dpr2, -thr, 0); a.stroke();
+  fnt(a, 11); a.fillStyle = '#ffb454'; a.textAlign = 'left'; a.textBaseline = 'middle'; a.fillText('θ = ' + CP.th + '°', cx + 36 * dpr2 * Math.cos(thr / 2), cy - 36 * dpr2 * Math.sin(thr / 2) - 6 * dpr2);
+  a.fillStyle = 'rgba(231,236,245,.85)'; a.textAlign = 'left'; a.textBaseline = 'bottom'; a.fillText(t('cpOvSrc') + ' ' + QX.SOURCES[CP.src].name, 12 * dpr2, cy - 8 * dpr2);
+  a.textAlign = 'center'; a.textBaseline = 'top'; a.fillText(t('cpOvTarget'), cx, cy + 18 * dpr2);
+  a.textAlign = 'center'; a.textBaseline = 'bottom'; a.fillText(t('cpOvDet'), dx, dy - 16 * dpr2);
+  // flying photons
+  for (k = CP.vis.length - 1; k >= 0; k--) {
+    var ph = CP.vis[k]; ph.t += 0.022 * (S.speed / 40 + 0.5); if (ph.t > 2.2) { CP.vis.splice(k, 1); continue; }
+    var X0, Y0, col;
+    if (ph.t < 1) { X0 = 12 * dpr2 + (cx - 12 * dpr2) * ph.t; Y0 = cy; col = '#7fd7ff'; }
+    else { var rr = (ph.t - 1) * R * 1.1; X0 = cx + rr * Math.cos(ph.th); Y0 = cy - rr * Math.sin(ph.th); var f = Math.min(1, ph.shift); col = 'rgb(' + Math.round(127 + 128 * f) + ',' + Math.round(215 - 77 * f) + ',' + Math.round(255 - 133 * f) + ')'; }
+    a.fillStyle = col; a.beginPath(); a.arc(X0, Y0, 2.2 * dpr2, 0, 7); a.fill();
+  }
+  fnt(a, 11.5, 700); a.fillStyle = 'rgba(231,236,245,.9)'; a.textAlign = 'left'; a.textBaseline = 'top'; a.fillText(t('cpViewTitle'), 10 * dpr2, 10 * dpr2);
+  fnt(a, 10); a.fillStyle = 'rgba(139,151,173,.95)'; a.textBaseline = 'bottom'; a.fillText(t('cpOvKN'), 10 * dpr2, h - 10 * dpr2);
+  // ---- plot: spectrum (top) + Δλ vs (1 − cos θ) (bottom)
+  var c = $('#c2b').getContext('2d'), W2 = $('#c2b').width, H2 = $('#c2b').height, rg = cpRange(), lam0 = QX.HC / E; c.clearRect(0, 0, W2, H2);
+  var b1 = { x: 18 * dpr2, y: 30 * dpr2, w: W2 - 34 * dpr2, h: H2 * 0.4 }, xr = rg, tk = [], st = 0.02, v0 = Math.ceil(rg[0] / st) * st;
+  for (var v = v0; v <= rg[1]; v += st) tk.push(+v.toFixed(3));
+  axes(c, b1, xr, tk, t('cpPlotX'), t('cpPlotSpec', { th: CP.th }), function (x) { return x.toFixed(2); });
+  var hmax = 0, i; for (i = 0; i < CP.nb; i++) hmax = Math.max(hmax, CP.hist[i]);
+  var grid = []; for (i = 0; i < CP.nb; i++) grid.push(rg[0] + (i + 0.5) * (rg[1] - rg[0]) / CP.nb);
+  var th = QX.comptonTheory(tg, E, CP.th * QX.D2R, grid, CP.res / 1000), tsum = 0, tmax = 0; for (i = 0; i < CP.nb; i++) { tsum += th[i]; tmax = Math.max(tmax, th[i]); }
+  var scale = CP.cnt > 0 ? CP.cnt / tsum : 1, ymax = Math.max(hmax, CP.cnt > 0 ? tmax * scale : 0) * 1.08 || 1;
+  if (layers.sim && CP.cnt) { c.fillStyle = 'rgba(242,245,250,.75)'; for (i = 0; i < CP.nb; i++) if (CP.hist[i]) { var hh = CP.hist[i] / ymax * b1.h; c.fillRect(b1.x + i / CP.nb * b1.w, b1.y + b1.h - hh, Math.max(1, b1.w / CP.nb - 0.5), hh); } }
+  if (layers.hu) { c.strokeStyle = '#6fe0c0'; c.lineWidth = 1.4 * dpr2; c.beginPath(); for (i = 0; i < CP.nb; i++) { var Y = b1.y + b1.h - (CP.cnt ? th[i] * scale / ymax : th[i] / tmax * 0.9) * b1.h; if (i) c.lineTo(b1.x + (i + 0.5) / CP.nb * b1.w, Y); else c.moveTo(b1.x + 0.5 / CP.nb * b1.w, Y); } c.stroke(); }
+  fnt(c, 10); c.textBaseline = 'bottom';
+  [[lam0, 'rgba(139,151,173,.9)', 'λ₀'], [lam0 + QX.comptonShift(CP.th * QX.D2R), '#ffb454', "λ₀ + Δλ"]].forEach(function (m, j) {
+    if (j === 1 && !layers.fr) return; var X0 = px(b1, xr, m[0]); c.strokeStyle = m[1]; c.setLineDash([4 * dpr2, 3 * dpr2]); c.beginPath(); c.moveTo(X0, b1.y); c.lineTo(X0, b1.y + b1.h); c.stroke(); c.setLineDash([]);
+    c.fillStyle = m[1]; c.textAlign = j ? 'left' : 'right'; c.fillText(m[2], X0 + (j ? 4 : -4) * dpr2, b1.y + 14 * dpr2);
+  });
+  var b2 = { x: 18 * dpr2, y: b1.y + b1.h + 66 * dpr2, w: W2 - 34 * dpr2, h: H2 - (b1.y + b1.h + 66 * dpr2) - 36 * dpr2 }, xr2 = [0, 2], ymx = 0.055;
+  axes(c, b2, xr2, [0, 0.5, 1, 1.5, 2], t('cpPlotFitX'), t('cpPlotFit'), function (x) { return x.toFixed(1); });
+  fnt(c, 9.5, 500, true); c.fillStyle = 'rgba(139,151,173,.9)'; c.textAlign = 'left'; c.textBaseline = 'middle';
+  [0.02, 0.04].forEach(function (yv) { var Y = b2.y + b2.h - yv / ymx * b2.h; c.fillRect(b2.x, Y, 4 * dpr2, dpr2); c.fillText(yv.toFixed(2) + ' Å', b2.x + 6 * dpr2, Y); });
+  if (layers.fr) { c.strokeStyle = '#ffb454'; c.lineWidth = 1.3 * dpr2; c.beginPath(); c.moveTo(b2.x, b2.y + b2.h); c.lineTo(b2.x + b2.w, b2.y + b2.h - 2 * QX.LAMBDA_C / ymx * b2.h); c.stroke(); }
+  var fit = cpFit();
+  if (isFinite(fit) && CP.points.length > 1) { c.strokeStyle = 'rgba(242,245,250,.8)'; c.setLineDash([5 * dpr2, 4 * dpr2]); c.beginPath(); c.moveTo(b2.x, b2.y + b2.h); c.lineTo(b2.x + b2.w, b2.y + b2.h - 2 * fit / ymx * b2.h); c.stroke(); c.setLineDash([]); }
+  CP.points.forEach(function (p) { c.fillStyle = '#f2f5fa'; c.beginPath(); c.arc(px(b2, xr2, p.x), b2.y + b2.h - p.y / ymx * b2.h, 3.2 * dpr2, 0, 7); c.fill(); });
+  if (run.frame++ % 6 === 0) setStatus([['E', E.toFixed(1) + ' keV'], ['λ₀', lam0.toFixed(4) + ' Å'], ['θ', CP.th + '°'], [t('cpMCounts'), CP.cnt.toLocaleString()]]);
+}
+function cpFit() { var xs = [], ys = []; CP.points.forEach(function (p) { xs.push(p.x); ys.push(p.y); }); return QX.fitSlope(xs, ys); }
+function cpMetrics() {
+  var E = cpE(), lam0 = QX.HC / E, th = CP.th * QX.D2R, dT = QX.comptonShift(th), tg = QX.TARGETS[CP.tg], cs = QX.crossSections(tg, E, th), Ep = QX.comptonEnergy(E, th), html = '';
+  var ko = I18N[S.lang] === I18N.ko;
+  html += mRow(t('cpME'), '', E.toFixed(2) + ' keV', t('cpMLam') + ' ' + lam0.toFixed(4) + ' Å');
+  html += mRow(t('cpMShiftT'), t('cpMShiftTs'), dT.toFixed(5) + ' Å', '');
+  html += mRow(t('cpMShiftS'), t('cpMShiftSs'), CP.status !== 'done' ? '…' : CP.meas == null ? t('cpMUnres') : CP.meas.toFixed(5) + ' Å', CP.meas != null && CP.status === 'done' ? pctErr(CP.meas, dT) : '', 'big');
+  html += mRow(t('cpMEp'), '', Ep.toFixed(2) + ' keV', t('cpMTe') + ' ' + ((E - Ep) * 1000).toFixed(0) + ' eV');
+  html += mRow(t('cpMRatio'), t('cpMRatios'), CP.cnt ? (CP.coh / Math.max(1, CP.cnt - CP.coh)).toFixed(3) : '…', (ko ? '이론 ' : 'theory ') + (cs.inc > 0 ? (cs.coh / cs.inc).toFixed(3) : '—'));
+  var fit = cpFit();
+  html += mRow(t('cpMFit'), t('cpMFits', { n: CP.points.length }), CP.points.length > 1 ? fit.toFixed(5) + ' Å' : t('cpMFitNone'), CP.points.length > 1 ? pctErr(fit, QX.LAMBDA_C) : '', CP.points.length > 1 ? 'big' : '');
+  html += mRow(t('cpMCounts'), '', CP.cnt.toLocaleString() + ' / ' + CP.N.toLocaleString(), '');
+  $('#cpMetrics').innerHTML = html;
+}
+X.ctl.compton = {
+  stage: 2, lead: 'leadCompton', learn: ['cL1', 'cL2'], guide: 'cpGuide', legend: ['cpLgSim', null, 'cpLgFr', 'cpLgHu'], foot: 'footC',
+  enter: function () { resize2(); cpReset(); },
+  leave: function () { CP.status = 'idle'; CP.vis = []; },
+  fire: cpFire, pause: function () { if (CP.status === 'running') { CP.status = 'paused'; updateButtons(); } }, reset: function () { cpReset(); },
+  part: function () { },
+  tick: cpTick,
+  buttons: function () { setButtons({ fire: CP.status === 'paused' ? t('resume') : t('measure'), fireDis: CP.status === 'running', pauseDis: CP.status !== 'running' }); },
+  lang: function () { cpSync(); cpMetrics(); },
+  hash: function () { return 'exp=compton&s=' + CP.src + '&tg=' + CP.tg + '&th=' + CP.th + '&res=' + CP.res + '&n=' + CP.N; },
+  fromHash: function (q) {
+    if (QX.SOURCES[q.s]) CP.src = q.s; if (QX.TARGETS[q.tg]) CP.tg = q.tg;
+    var v = parseFloat(q.th); if (isFinite(v)) CP.th = Math.round(Math.min(170, Math.max(10, v)) / 5) * 5;
+    v = parseFloat(q.res); if (isFinite(v)) CP.res = Math.round(Math.min(4, Math.max(0.2, v)) * 10) / 10;
+    v = parseFloat(q.n); if (isFinite(v)) CP.N = Math.round(Math.min(20000, Math.max(1000, v)) / 1000) * 1000;
+  }
+};
+
+/* =====================================================================
+   switching, language, learn cards, hash, events, boot
+   ===================================================================== */
+function writeHash() { try { history.replaceState(null, '', '#' + C().hash()); } catch (e) { } }
+function decorate() {
+  var c = C();
+  $('#lead').innerHTML = t(c.lead);
+  $('#stage').style.display = c.stage === 1 ? '' : 'none'; $('#stage2').classList.toggle('on', c.stage === 2);
+  $$('#tabs button').forEach(function (b) { b.setAttribute('aria-selected', String(b.dataset.exp === X.cur)); });
+  var tb = $('#tabs'), on = $('#tabs [aria-selected="true"]');                       // keep the active tab visible on narrow screens
+  if (on && tb.scrollWidth > tb.clientWidth) { var l = on.offsetLeft - tb.offsetLeft; if (l < tb.scrollLeft || l + on.offsetWidth > tb.scrollLeft + tb.clientWidth) tb.scrollLeft = l - (tb.clientWidth - on.offsetWidth) / 2; }
+  $$('.side .xp').forEach(function (p) { p.classList.toggle('on', p.dataset.exp === X.cur); });
+  ['sim', 'hist', 'fr', 'hu'].forEach(function (k, i) { var key = c.legend[i], btn = $('#legend [data-layer="' + k + '"]'); btn.style.display = key ? '' : 'none'; if (key) $('#lg_' + k).textContent = t(key); });
+  $('#guide').innerHTML = t(c.guide).map(function (g) { return '<div><i style="background:' + g[0] + '"></i><span>' + g[1] + '</span></div>'; }).join('');
+  $('#foot').textContent = t(c.foot);
+}
+function switchExp(id) {
+  if (!X.ctl[id]) return;
+  if (X.ctl[X.cur] && X.cur !== id) X.ctl[X.cur].leave();
+  X.cur = id; hideMsgs(); decorate(); run.frame = 0; C().enter(); updateButtons(); writeHash();
+}
 function applyLang() {
   document.documentElement.lang = S.lang;
-  document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.dataset.i18n); });
-  document.querySelectorAll('#langSeg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.lang === S.lang)); });
-  $('#guide').innerHTML = t('guide').map(function (g) { return '<div><i style="background:' + g[0] + '"></i><span>' + g[1] + '</span></div>'; }).join('');
-  updateButtons(); syncControls(); lastMetrics = ''; renderMetrics(combined(), 0); drawStatus();
+  $$('[data-i18n]').forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+  press('#langSeg button', function (b) { return b.dataset.lang === S.lang; });
+  decorate(); C().lang(); updateButtons();
   if (learnIdx >= 0) showLearn(learnIdx);
 }
-
-/* ---------------- learn overlay ---------------- */
 var learnIdx = -1;
 function showLearn(i) {
-  learnIdx = i; $('#learn').classList.add('on');
-  $('#learnStep').textContent = t('stepOf', { i: i + 1, n: 4 });
-  $('#learnTitle').textContent = t('learn' + (i + 1) + 't'); $('#learnBody').innerHTML = t('learn' + (i + 1));
-  $('#learnDots').innerHTML = [0, 1, 2, 3].map(function (k) { return '<i class="' + (k === i ? 'on' : '') + '"></i>'; }).join('');
-  $('#learnPrev').disabled = i === 0; $('#learnNext').textContent = i === 3 ? t('done') : t('next');
+  var keys = C().learn; learnIdx = i; $('#learn').classList.add('on');
+  $('#learnStep').textContent = t('stepOf', { i: i + 1, n: keys.length });
+  $('#learnTitle').textContent = t(keys[i] + 't'); $('#learnBody').innerHTML = t(keys[i]);
+  $('#learnDots').innerHTML = keys.map(function (k, j) { return '<i class="' + (j === i ? 'on' : '') + '"></i>'; }).join('');
+  $('#learnPrev').disabled = i === 0; $('#learnNext').textContent = i === keys.length - 1 ? t('done') : t('next');
   $('#learnNext').focus();
 }
 function hideLearn() { learnIdx = -1; $('#learn').classList.remove('on'); }
 
-/* ---------------- events ---------------- */
-function paramsChanged() { part.on = false; part.waiting = false; syncControls(); resetRun(); }
 function bind() {
-  $('#fireBtn').onclick = fire;
-  $('#pauseBtn').onclick = function () { if (run.status === 'running') { run.status = 'paused'; updateButtons(); } };
-  $('#resetBtn').onclick = function () { part.on = false; part.waiting = false; resetRun(); };
+  $$('#tabs button').forEach(function (b) { b.onclick = function () { switchExp(b.dataset.exp); }; });
+  $('#fireBtn').onclick = function () { C().fire(); };
+  $('#pauseBtn').onclick = function () { C().pause(); };
+  $('#resetBtn').onclick = function () { C().reset(); };
+  $('#partBtn').onclick = function () { C().part(); };
   $('#speed').oninput = function (e) { S.speed = +e.target.value; };
-  document.querySelectorAll('.setup').forEach(function (b) { b.onclick = function () { applyDefaults(b.dataset.setup); paramsChanged(); }; });
+  $$('#rateSeg button').forEach(function (b) { b.onclick = function () { X.rate = part.rate = +b.dataset.rate; press('#rateSeg button', function (x) { return x === b; }); }; });
+  $$('#viewSeg button').forEach(function (b) { b.onclick = function () { S.view = b.dataset.view; press('#viewSeg button', function (x) { return x.dataset.view === S.view; }); }; });
+  $$('#legend button').forEach(function (b) { b.onclick = function () { layers[b.dataset.layer] = !layers[b.dataset.layer]; b.setAttribute('aria-pressed', String(layers[b.dataset.layer])); }; });
+  $$('#langSeg button').forEach(function (b) { b.onclick = function () { S.lang = b.dataset.lang; try { localStorage.setItem('qslLang', S.lang); } catch (e) { } applyLang(); }; });
+  // slit
+  $$('.setup').forEach(function (b) { b.onclick = function () { applyDefaults(b.dataset.setup); paramsChanged(); }; });
   [['lam', 'lambda'], ['d', 'd'], ['a', 'a'], ['n', 'n'], ['sig', 'sigma']].forEach(function (p) {
     $('#' + p[0]).oninput = function (e) { S[p[1]] = +e.target.value; syncControls(); };
     $('#' + p[0]).onchange = function () { paramsChanged(); };
   });
   $('#obs').onchange = function (e) { S.obs = e.target.checked; paramsChanged(); };
-  document.querySelectorAll('#viewSeg button').forEach(function (b) { b.onclick = function () { S.view = b.dataset.view; syncControls(); }; });
-  document.querySelectorAll('#langSeg button').forEach(function (b) { b.onclick = function () { S.lang = b.dataset.lang; try { localStorage.setItem('qslLang', S.lang); } catch (e) { } applyLang(); }; });
-  document.querySelectorAll('#rateSeg button').forEach(function (b) { b.onclick = function () { part.rate = +b.dataset.rate; document.querySelectorAll('#rateSeg button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); }; });
-  document.querySelectorAll('#legend button').forEach(function (b) { b.onclick = function () { layers[b.dataset.layer] = !layers[b.dataset.layer]; b.setAttribute('aria-pressed', String(layers[b.dataset.layer])); }; });
-  $('#partBtn').onclick = function () {
-    if (part.on || part.waiting) { part.on = false; part.waiting = false; updateButtons(); return; }
-    if (run.status === 'done') { part.on = true; } else { part.waiting = true; if (run.status !== 'running') fire(); }
-    updateButtons();
-  };
+  // electron
+  $$('#elPresets button').forEach(function (b) { b.onclick = function () { EL.E = +b.dataset.e; elReset(); }; });
+  $('#elE').oninput = function (e) { EL.E = +e.target.value; elSync(); }; $('#elE').onchange = function () { elReset(); };
+  $('#elScanBtn').onclick = elScanStart;
+  // x-ray
+  $$('#xrCrystals button').forEach(function (b) { b.onclick = function () { XR.c = b.dataset.c; xrReset(); }; });
+  $$('#xrTubes button').forEach(function (b) { b.onclick = function () { XR.tube = b.dataset.t; xrReset(); }; });
+  $('#xrR').oninput = function (e) { XR.D = +e.target.value; xrSync(); }; $('#xrR').onchange = function () { xrReset(); };
+  // dna
+  $$('#dnPresets button').forEach(function (b) { b.onclick = function () { DN.preset = b.dataset.p; DN.p = Object.assign({}, QX.DNA_PRESETS[DN.preset]); dnReset(); }; });
+  [['dnP', 'pitch'], ['dnBp', 'bp'], ['dnR', 'r'], ['dnOff', 'off']].forEach(function (p) {
+    $('#' + p[0]).oninput = function (e) { DN.p[p[1]] = +e.target.value; DN.preset = ''; dnSync(); };
+    $('#' + p[0]).onchange = function () { dnReset(); };
+  });
+  $('#dnTwo').onchange = function (e) { DN.p.two = e.target.checked; DN.preset = ''; dnReset(); };
+  // compton
+  $$('#cpSources button').forEach(function (b) { b.onclick = function () { CP.src = b.dataset.s; cpReset(); }; });
+  $$('#cpTargets button').forEach(function (b) { b.onclick = function () { CP.tg = b.dataset.t; cpReset(); }; });
+  $('#cpTh').oninput = function (e) { CP.th = +e.target.value; cpSync(); if (CP.status !== 'running') { CP.status = 'idle'; cpClearRun(); cpMetrics(); updateButtons(); } };
+  $('#cpRes').oninput = function (e) { CP.res = +e.target.value; cpSync(); }; $('#cpRes').onchange = function () { cpReset(); };
+  $('#cpN').oninput = function (e) { CP.N = +e.target.value; cpSync(); cpMetrics(); };
+  // learn + tests
   $('#learnBtn').onclick = function () { showLearn(0); };
   $('#learnPrev').onclick = function () { if (learnIdx > 0) showLearn(learnIdx - 1); };
-  $('#learnNext').onclick = function () { if (learnIdx < 3) showLearn(learnIdx + 1); else hideLearn(); };
+  $('#learnNext').onclick = function () { if (learnIdx < C().learn.length - 1) showLearn(learnIdx + 1); else hideLearn(); };
   $('#learn').onclick = function (e) { if (e.target.id === 'learn') hideLearn(); };
   $('#testClose').onclick = function () { $('#testOut').classList.remove('on'); };
   window.addEventListener('keydown', function (e) {
     if (e.target.tagName === 'INPUT' && e.target.type !== 'range' && e.target.type !== 'checkbox') return;
     if (learnIdx >= 0) { if (e.key === 'Escape') hideLearn(); if (e.key === 'ArrowRight') $('#learnNext').click(); if (e.key === 'ArrowLeft') $('#learnPrev').click(); return; }
-    if (e.key === ' ') { e.preventDefault(); if (run.status === 'running') $('#pauseBtn').click(); else fire(); }
-    else if (e.key === 'r' || e.key === 'R') $('#resetBtn').click();
-    else if (e.key === 'p' || e.key === 'P') $('#partBtn').click();
-    else if ((e.key === 'o' || e.key === 'O') && P.N > 1) { S.obs = !S.obs; paramsChanged(); }
-    else if (e.key === '1' || e.key === '2' || e.key === '3') { applyDefaults(['single', 'double', 'multi'][+e.key - 1]); paramsChanged(); }
+    if (e.key === ' ') { e.preventDefault(); if ($('#pauseBtn').disabled) { if (!$('#fireBtn').disabled) C().fire(); } else C().pause(); }
+    else if (e.key === 'r' || e.key === 'R') C().reset();
+    else if ((e.key === 'p' || e.key === 'P') && $('#partBtn').style.display !== 'none' && $('#partGrp').style.display !== 'none') C().part();
+    else if ((e.key === 'o' || e.key === 'O') && X.cur === 'slit' && P.N > 1) { S.obs = !S.obs; paramsChanged(); }
+    else if (e.key >= '1' && e.key <= '5') switchExp(X.order[+e.key - 1]);
   });
-  window.addEventListener('resize', resize);
-  if (window.ResizeObserver) new ResizeObserver(resize).observe($('#wave'));
+  window.addEventListener('resize', function () { if (C().stage === 1) { resize(); if (X.cur === 'electron') elRedrawDots(); } else resize2(); if (X.cur === 'electron') elScanDraw(); });
+  if (window.ResizeObserver) { new ResizeObserver(function () { if (C().stage === 1) { resize(); if (X.cur === 'electron') elRedrawDots(); } }).observe($('#wave')); new ResizeObserver(function () { if (C().stage === 2) resize2(); }).observe($('#view2')); }
 }
-
-/* ---------------- boot ---------------- */
+function loop() { requestAnimationFrame(loop); C().tick(); }      // schedule first, so an error in one frame can't stop the lab
 function boot() {
   var q = new URLSearchParams(location.search), lang = q.get('lang');
   try { lang = lang || localStorage.getItem('qslLang'); } catch (e) { }
   if (lang === 'en' || lang === 'ko') S.lang = lang;
-  var h = QSL.decodeHash(location.hash);
+  var hq = {}; String(location.hash).replace(/^#/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) hq[a[0]] = decodeURIComponent(a[1] || ''); });
+  var h = QSL.decodeHash(location.hash), start = X.ctl[hq.exp] ? hq.exp : 'slit';
   if (h) { for (var k in h) S[k] = h[k]; } else applyDefaults('double');
+  if (start !== 'slit' && X.ctl[start].fromHash) X.ctl[start].fromHash(hq);
   P = QSL.sceneParams(S, W, H);
   try { if (q.get('cpu') !== '1') { gl = makeGl($('#glCanvas')); if (gl) engine = new GpuEngine(gl, W, H); } } catch (e) { console.warn(e); gl = null; engine = null; }
   if (!engine) { $('#glCanvas').style.display = 'none'; $('#cpuCanvas').style.display = 'block'; engine = new CpuEngine($('#cpuCanvas'), W, H); }
-  bind(); resize(); applyLang(); resetRun();
+  bind(); X.cur = start; resize(); switchExp(start); applyLang();
   if (engine.kind === 'CPU') showMsg(t('noGl'), 6000);
-  requestAnimationFrame(tick);
+  requestAnimationFrame(loop);
   if (q.get('test') === '1') setTimeout(runTests, 50);
 }
 </script>
@@ -1352,6 +2775,130 @@ async function runTests() {
     var rH = Q.pearson(r.sim, Q.theoryCurves(r.p, H, true).hu, LO, HI);
     var s = 0, y; for (y = 0; y < H; y++) s += r.acc[y]; var s2 = 0; for (y = 0; y < H; y++) s2 += dbl.acc[y];
     return { ok: V < 0.1 && rH > 0.98 && Math.abs(s / s2 - 1) < 0.1, info: 'V = ' + V.toFixed(3) + ' (no measurement: ' + Q.visibility(dbl.sim, LO, HI, CEN, 80).toFixed(3) + '), r(incoherent Huygens) = ' + rH.toFixed(4) + ', P_screen ' + s.toFixed(3) + ' vs ' + s2.toFixed(3) };
+  });
+
+
+  // ===================== v2: experiments 2–5 =====================
+  var Z = QX, sleep = function (ms) { return new Promise(function (r) { setTimeout(r, ms); }); };
+  await T('Electron wavelength λ = h/√(2meV(1+eV/2mc²))', function () {
+    var a = Z.electronLambda(54), b = Z.electronLambda(100), c = Z.electronLambda(150);
+    return { ok: Math.abs(a - 1.6689) < 2e-4 && Math.abs(b - 1.2264) < 2e-4 && Math.abs(c - 1.0013) < 2e-4, info: 'λ(54 V) = ' + a.toFixed(4) + ' Å, λ(100 V) = ' + b.toFixed(4) + ' Å, λ(150 V) = ' + c.toFixed(4) + ' Å' };
+  });
+  function elRun(E) {
+    var p = Z.electronParams({ E: E }, W, H), sc = Z.crystalScene(p), v = 2 * Math.PI / p.lambda * 0.97;
+    var tS = (p.xs - p.x0) / v + (2 * p.layers * p.C + 6 * p.sx + 70) / v, spec = { V: sc.V, M: M_ABS, wall: sc.wall, dt: 0.2, packet: { x0: p.x0, y0: p.y0, sigma: p.sx, sigmaY: p.sy, lambda: p.lambda }, fluxX: 40 };
+    bigEngine.reset(spec); bigEngine.step(Math.ceil(tS / 0.2)); var st = bigEngine.readState();
+    return { p: p, atoms: sc.atoms, spec: Z.backscatterSpectrum(st, st.subarray(1), st.subarray(2), W, H, p.xs - 6, 2 * Math.PI / p.lambda, 4) };
+  }
+  await T('Electron diffraction (Schrödinger): 54 eV first-order peak at arcsin(λ/D)', function () {
+    if (!bigEngine) return { ok: false, info: 'needs WebGL2' };
+    var r = elRun(54), th = Z.dgAngles(r.p)[0].phi, pk = Z.peakAngle(r.spec.bins, 8, 88), kin = Z.peakAngle(Z.kinematicAngular(r.p, r.atoms), 8, 88);
+    return { ok: Math.abs(pk - th) < 2, info: 'sim ' + pk.toFixed(2) + '° vs D sinφ = λ: ' + th.toFixed(2) + '° (kinematic ' + kin.toFixed(2) + '°; Davisson–Germer measured 50°)' };
+  });
+  await T('Electron diffraction: 100 eV peak moves in; 25 eV (λ > D) has no first order', function () {
+    if (!bigEngine) return { ok: false, info: 'needs WebGL2' };
+    var r = elRun(100), th = Z.dgAngles(r.p)[0].phi, pk = Z.peakAngle(r.spec.bins, 8, 88);
+    var q = elRun(25), side = 0, tot = 0; for (var b = 0; b <= 180; b++) { tot += q.spec.bins[b]; if (Math.abs(b - 90) > 10) side += q.spec.bins[b]; }
+    return { ok: Math.abs(pk - th) < 2 && side / tot < 0.03 && Z.dgAngles(q.p).length === 0, info: '100 eV: sim ' + pk.toFixed(2) + '° vs ' + th.toFixed(2) + '°; 25 eV: reflected outside ±10° = ' + (100 * side / tot).toFixed(2) + ' %' };
+  });
+  await T('Form factors (Cromer–Mann): f(0) = number of electrons', function () {
+    var Zs = { C: 6, Al: 13, Si: 14, Cu: 29, Na1: 10, Cl1: 18, K1: 18, Cs1: 54 }, worst = 0;
+    for (var el in Zs) worst = Math.max(worst, Math.abs(Z.formFactor(el, 0) - Zs[el]));
+    return { ok: worst < 0.02, info: 'max |f(0) − Z| = ' + worst.toFixed(4) };
+  });
+  await T('Bragg theory: Si with Cu Kα matches the reference pattern (ICDD 27-1402)', function () {
+    var ref = { 111: 28.443, 220: 47.303, 311: 56.123, 400: 69.131, 331: 76.377, 422: 88.032 }, R = Z.braggReflections(Z.CRYSTALS.Si, 1.5406, 100), worst = 0;
+    R.forEach(function (r) { if (ref[r.hkl]) worst = Math.max(worst, Math.abs(r.tth - ref[r.hkl])); });
+    return { ok: worst < 0.01, info: 'max |2θ − reference| = ' + worst.toFixed(4) + '° over 6 reflections' };
+  });
+  await T('Structure factor absences: Si (200),(222) · KCl (111) · NaCl (111) present · fcc mixed hkl', function () {
+    function rel(c, hkl) { var r = Z.braggReflections(Z.CRYSTALS[c], 1.5406, 110).filter(function (x) { return x.hkl === hkl; })[0]; return r ? r.rel : NaN; }
+    var a = rel('Si', '200'), b = rel('Si', '222'), k = rel('KCl', '111'), n = rel('NaCl', '111'), cu = rel('Cu', '210');
+    return { ok: a < 1e-3 && b < 1e-3 && k < 0.5 && n > 3 && cu < 1e-3, info: 'Si 200 ' + a.toExponential(1) + ', Si 222 ' + b.toExponential(1) + ', KCl 111 ' + k.toFixed(2) + ' %, NaCl 111 ' + n.toFixed(1) + ' %, Cu 210 ' + cu.toExponential(1) };
+  });
+  var xrS = null;
+  await T('X-ray (Debye sum over every atom): Si peaks at Bragg angles, lattice constant', function () {
+    xrS = xrAnalyse('Si', 'Cu', 60); var worst = 0;
+    xrS.groups.forEach(function (g) { if (g.thRel >= 5) worst = Math.max(worst, Math.abs(g.pos - g.top.tth)); });
+    var e = Math.abs(xrS.aFit / xrS.cr.a - 1);
+    return { ok: worst < 0.12 && e < 0.002, info: xrS.cl.N + ' atoms; max |Δ2θ| = ' + worst.toFixed(3) + '°; a = ' + xrS.aFit.toFixed(4) + ' Å vs ' + xrS.cr.a + ' (' + (e * 100).toFixed(3) + ' %)' };
+  });
+  await T('X-ray: intensities, Debye sum vs structure-factor theory (R factor Σ|ΔI| / ΣI)', function () {
+    function rf(res) { var d = 0, s = 0, rows = []; res.groups.forEach(function (g) { if (g.thRel >= 3 && !g.edge) { d += Math.abs(g.simRel - g.thRel); s += g.thRel; rows.push(g.label + ' ' + g.simRel.toFixed(0) + '/' + g.thRel.toFixed(0)); } }); return { R: d / s, rows: rows }; }
+    var a = rf(xrS), b = rf(xrAnalyse('NaCl', 'Cu', 60)), c = rf(xrAnalyse('KCl', 'Cu', 60));
+    return { ok: a.R < 0.08 && b.R < 0.08 && c.R < 0.08, info: 'R = ' + (a.R * 100).toFixed(1) + ' % (Si: ' + a.rows.join(', ') + '), NaCl ' + (b.R * 100).toFixed(1) + ' %, KCl ' + (c.R * 100).toFixed(1) + ' %' };
+  });
+  await T('Bessel J_n (Miller recurrence) against tabulated values', function () {
+    var tab = [[0, 1, 0.7651976866], [1, 1.8412, 0.5818652], [5, 7, 0.3478963], [-3, 2, -0.1289432], [10, 3, 1.292835e-5]], worst = 0;
+    tab.forEach(function (r) { worst = Math.max(worst, Math.abs(Z.besselJ(r[0], r[1]) - r[2]) / Math.max(1e-5, Math.abs(r[2]))); });
+    return { ok: worst < 1e-5, info: 'max relative error ' + worst.toExponential(2) };
+  });
+  var dnB = null;
+  await T('DNA (direct sum over atoms): pitch and rise read from the pattern', function () {
+    dnB = dnAnalyse(Z.DNA_PRESETS.B, 5, 120, 181, 0.2);
+    var e1 = Math.abs(dnB.P / 34 - 1), e2 = Math.abs(dnB.rise / 3.4 - 1);
+    return { ok: e1 < 0.01 && e2 < 0.01, info: 'P = ' + dnB.P.toFixed(3) + ' Å (34), rise = ' + dnB.rise.toFixed(4) + ' Å (3.4), ' + dnB.model.atoms.length + ' scatterers' };
+  });
+  await T('DNA: 4th layer line suppressed (B form) and layer lines match helical theory', function () {
+    return { ok: dnB.I43s < 0.5 && Math.abs(dnB.I43s - dnB.I43t) < 0.1 && dnB.r > 0.98, info: 'I₄/I₃ sim ' + dnB.I43s.toFixed(3) + ', theory ' + dnB.I43t.toFixed(3) + '; r(layer lines) = ' + dnB.r.toFixed(4) };
+  });
+  await T('DNA: equal grooves (Δ = P/2) remove the odd layer lines; one strand keeps l = 4', function () {
+    var e = dnAnalyse(Z.DNA_PRESETS.even, 5, 120, 181, 0.2), s = dnAnalyse(Z.DNA_PRESETS.single, 5, 120, 181, 0.2);
+    return { ok: e.llS[1] / e.llS[2] < 0.1 && e.llS[3] / e.llS[2] < 0.1 && s.I43s > 0.5, info: 'equal grooves: I₁/I₂ = ' + (e.llS[1] / e.llS[2]).toFixed(3) + ', I₃/I₂ = ' + (e.llS[3] / e.llS[2]).toFixed(3) + '; single strand I₄/I₃ = ' + s.I43s.toFixed(2) };
+  });
+  await T('Compton: Δλ(90°) = h/mc, and moving-electron kinematics reduce to it at rest', function () {
+    var worst = 0, E = Z.SOURCES.Mo.E;
+    for (var d = 0; d <= 180; d += 15) { var th = d * Z.D2R, lam = Z.HC / Z.scatterMoving(E, [1, 0, 0], [Math.cos(th), Math.sin(th), 0], [0, 0, 0]); worst = Math.max(worst, Math.abs(lam - Z.HC / E - Z.comptonShift(th))); }
+    return { ok: Math.abs(Z.comptonShift(Math.PI / 2) - 0.0242631) < 1e-7 && worst < 1e-9, info: 'Δλ(90°) = ' + Z.comptonShift(Math.PI / 2).toFixed(7) + ' Å; max |4-vector − formula| = ' + worst.toExponential(1) + ' Å' };
+  });
+  await T('Compton Monte Carlo (graphite, Mo Kα, 90°): measured shift within 3 %', function () {
+    var rng = QSL.mulberry32(11), E = Z.SOURCES.Mo.E, rg = [Z.HC / E - 0.012, Z.HC / E + 2 * Z.LAMBDA_C + 0.02], h2 = new Float64Array(220), coh = 0;
+    for (var i = 0; i < 20000; i++) { var e = Z.comptonEvent(Z.TARGETS.C, E, Math.PI / 2, 1.5 * Z.D2R, rng), l = e.lam + Z.gauss(rng) * 0.001, b = Math.floor((l - rg[0]) / (rg[1] - rg[0]) * 220); if (b >= 0 && b < 220) h2[b]++; if (e.coh) coh++; }
+    var m = cpMeasure(h2, rg, Z.HC / E, 0.001), th = Z.comptonShift(Math.PI / 2), cs = Z.crossSections(Z.TARGETS.C, E, Math.PI / 2), r = coh / (20000 - coh);
+    return { ok: Math.abs(m / th - 1) < 0.03 && Math.abs(r / (cs.coh / cs.inc) - 1) < 0.1, info: 'Δλ = ' + m.toFixed(5) + ' vs ' + th.toFixed(5) + ' Å (' + ((m / th - 1) * 100).toFixed(1) + ' %); unshifted/shifted ' + r.toFixed(3) + ' vs ' + (cs.coh / cs.inc).toFixed(3) };
+  });
+  await T('Compton: Δλ vs (1 − cos θ) at 4 angles → h/mc within 2 %', function () {
+    var rng = QSL.mulberry32(5), E = Z.SOURCES.Mo.E, xs = [], ys = [], rg = [Z.HC / E - 0.012, Z.HC / E + 2 * Z.LAMBDA_C + 0.02];
+    [60, 90, 120, 150].forEach(function (d) {
+      var h2 = new Float64Array(220); for (var i = 0; i < 8000; i++) { var e = Z.comptonEvent(Z.TARGETS.C, E, d * Z.D2R, 1.5 * Z.D2R, rng), l = e.lam + Z.gauss(rng) * 0.001, b = Math.floor((l - rg[0]) / (rg[1] - rg[0]) * 220); if (b >= 0 && b < 220) h2[b]++; }
+      xs.push(1 - Math.cos(d * Z.D2R)); ys.push(cpMeasure(h2, rg, Z.HC / E, 0.001));
+    });
+    var s = Z.fitSlope(xs, ys), e = Math.abs(s / Z.LAMBDA_C - 1);
+    return { ok: e < 0.02, info: 'slope = ' + s.toFixed(5) + ' Å vs h/mc = ' + Z.LAMBDA_C.toFixed(5) + ' Å (' + (e * 100).toFixed(2) + ' %)' };
+  });
+  await T('Klein–Nishina sampling (free electron, 662 keV): χ² over 18 angle bins', function () {
+    var rng = QSL.mulberry32(3), E = 661.657, nb = 18, bins = new Float64Array(nb), N = 60000, n = 0, i;
+    while (n < N) { var c = 2 * rng() - 1, th = Math.acos(c); if (rng() < Z.kleinNishina(E, th)) { bins[Math.min(nb - 1, Math.floor((c + 1) / 2 * nb))]++; n++; } }
+    var w = new Float64Array(nb), ws = 0; for (i = 0; i < nb; i++) { for (var k = 0; k < 50; k++) { var cc = -1 + (i + (k + 0.5) / 50) * 2 / nb; w[i] += Z.kleinNishina(E, Math.acos(cc)); } ws += w[i]; }
+    var chi = 0; for (i = 0; i < nb; i++) { var ex = w[i] / ws * N; chi += Math.pow(bins[i] - ex, 2) / ex; }
+    var lim = (nb - 1) + 4 * Math.sqrt(2 * (nb - 1));
+    return { ok: chi < lim, info: 'χ² = ' + chi.toFixed(1) + ' for ' + (nb - 1) + ' dof (limit ' + lim.toFixed(1) + ')' };
+  });
+  await T('UI flow: every tab fires, shoots particles, resets (dots cleared), fires again — no errors', async function () {
+    var errs = 0, onErr = function () { errs++; }; window.addEventListener('error', onErr);
+    var log = [], savedRate = X.rate; X.rate = 2000;
+    function ink(cv) { var d = cv.getContext('2d').getImageData(0, 0, cv.width, cv.height).data, n = 0; for (var i = 3; i < d.length; i += 4) if (d[i]) n++; return n; }
+    async function until(fn, ms) { var t0 = Date.now(); while (!fn() && Date.now() - t0 < ms) await sleep(100); return fn(); }
+    var specs = {
+      slit: { done: function () { return run.status === 'done'; }, dots: function () { return part.dots.length; }, layer: dotLayer },
+      electron: { done: function () { return EL.status === 'done'; }, dots: function () { return EL.k.dots.length; }, layer: dotLayer },
+      xray: { done: function () { return XR.status === 'done'; }, dots: function () { return XR.k.dots.length; }, layer: dot2 },
+      dna: { done: function () { return DN.status === 'done'; }, dots: function () { return DN.k.dots.length; }, layer: dot2 },
+      compton: { done: function () { return CP.status === 'done'; }, dots: function () { return CP.cnt; }, layer: null }
+    };
+    for (var i = 0; i < X.order.length; i++) {
+      var id = X.order[i], sp = specs[id]; switchExp(id); await sleep(150);
+      if (id === 'compton') { CP.N = 2000; C().fire(); } else C().part();
+      var ok1 = await until(function () { return sp.done() && sp.dots() > 50; }, 25000);
+      var inkBefore = sp.layer ? ink(sp.layer) : 1;
+      C().fire(); await sleep(120);                                         // fire again while particles are running (the old crash)
+      C().reset(); await sleep(150);
+      var inkAfter = sp.layer ? ink(sp.layer) : 0, cleared = sp.dots() === 0 && inkAfter === 0;
+      log.push(id + (ok1 && inkBefore > 0 && cleared ? ' ✓' : ' ✗(' + ok1 + ',' + inkBefore + '→' + inkAfter + ',' + sp.dots() + ')'));
+    }
+    X.rate = savedRate; CP.N = 5000; switchExp('slit'); window.removeEventListener('error', onErr);
+    var ok = log.every(function (s) { return s.slice(-1) === '✓'; }) && errs === 0;
+    return { ok: ok, info: log.join(' · ') + ' · errors ' + errs };
   });
 
   var pass = results.filter(function (r) { return r.ok; }).length;
